@@ -32,13 +32,18 @@ const KEYPAD_SIZE: usize = 16;
 
 const CLOCK_HZ: f32 = 600.0; // I don't really know why a float is necessary.
 
+const DISPLAY_WIDTH: usize = 64;
+const DISPLAY_HEIGHT: usize = 32;
+const DISPLAY_PIXELS: usize = DISPLAY_WIDTH * DISPLAY_HEIGHT;
+
 // TODO: How to print things to the screen/display?
 
 pub struct VM {
     ram: [u8; RAM_SIZE],                     // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
     stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
-    keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad.
+    keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
+    gfx: [u8; DISPLAY_PIXELS],               // Graphics "card"
 
     i: u16,                                  // Store memory addresses
 
@@ -56,6 +61,7 @@ impl Default for VM {
             registers: [0; GENERAL_REGISTERS_SIZE],
             stack: [0; STACK_SIZE],
             keypad: [0; KEYPAD_SIZE],
+            gfx: [0; DISPLAY_PIXELS],
             i: 0,
             dt: 0,
             st: 0,
@@ -161,5 +167,12 @@ mod tests {
         let vm: VM = Default::default();
 
         assert_eq!([0 as u8; 16], vm.keypad);
+    }
+
+    #[test]
+    fn vm_has_graphics() {
+        let vm: VM = Default::default();
+
+        assert_eq!((64 * 32), vm.gfx.len());
     }
 }

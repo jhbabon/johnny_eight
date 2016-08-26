@@ -28,10 +28,13 @@ const FONTS: [u8; FONTS_SIZE] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
+const KEYPAD_SIZE: usize = 16;
+
 pub struct VM {
     ram: [u8; RAM_SIZE],                     // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
     stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
+    keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad.
 
     i: u16,                                  // Store memory addresses
 
@@ -48,6 +51,7 @@ impl Default for VM {
             ram: [0; RAM_SIZE],
             registers: [0; GENERAL_REGISTERS_SIZE],
             stack: [0; STACK_SIZE],
+            keypad: [0; KEYPAD_SIZE],
             i: 0,
             dt: 0,
             st: 0,
@@ -103,7 +107,7 @@ mod tests {
     fn vm_has_16_general_purpose_registers() {
         let vm: VM = Default::default();
 
-        assert_eq!(16, vm.registers.len());
+        assert_eq!([0 as u8; 16], vm.registers);
     }
 
     #[test]
@@ -146,5 +150,12 @@ mod tests {
         let vm: VM = Default::default();
 
         assert_eq!([0 as u16; 16], vm.stack);
+    }
+
+    #[test]
+    fn vm_has_keeps_tracks_of_the_keypad() {
+        let vm: VM = Default::default();
+
+        assert_eq!([0 as u8; 16], vm.keypad);
     }
 }

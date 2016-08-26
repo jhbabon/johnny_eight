@@ -30,6 +30,10 @@ const FONTS: [u8; FONTS_SIZE] = [
 
 const KEYPAD_SIZE: usize = 16;
 
+const CLOCK_HZ: f32 = 600.0; // I don't really know why a float is necessary.
+
+// TODO: How to print things to the screen/display?
+
 pub struct VM {
     ram: [u8; RAM_SIZE],                     // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
@@ -153,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    fn vm_has_keeps_tracks_of_the_keypad() {
+    fn vm_keeps_tracks_of_the_keypad() {
         let vm: VM = Default::default();
 
         assert_eq!([0 as u8; 16], vm.keypad);

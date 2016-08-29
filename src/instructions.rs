@@ -45,6 +45,11 @@ pub enum Instruction {
     Or { vx: u8, vy: u8 },
     And { vx: u8, vy: u8 },
     Xor { vx: u8, vy: u8 },
+    Add { vx: u8, vy: u8 },
+    SubXY { vx: u8, vy: u8 },
+    ShiftRight { vx: u8, vy: u8 },
+    SubYX { vx: u8, vy: u8 },
+    ShiftLeft { vx: u8, vy: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -66,6 +71,11 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0x8000, nibble: 0x01, x, y, .. } => Some(Instruction::Or { vx: x, vy: y }),
         Opcode { id: 0x8000, nibble: 0x02, x, y, .. } => Some(Instruction::And { vx: x, vy: y }),
         Opcode { id: 0x8000, nibble: 0x03, x, y, .. } => Some(Instruction::Xor { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x04, x, y, .. } => Some(Instruction::Add { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x05, x, y, .. } => Some(Instruction::SubXY { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x06, x, y, .. } => Some(Instruction::ShiftRight { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x07, x, y, .. } => Some(Instruction::SubYX { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x0E, x, y, .. } => Some(Instruction::ShiftLeft { vx: x, vy: y }),
 
         _ => None,
     }
@@ -197,6 +207,56 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::Xor { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_add() {
+        let opcode: u16 = 0x81A4;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::Add { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_sub_x_y() {
+        let opcode: u16 = 0x81A5;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SubXY { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_shift_right() {
+        let opcode: u16 = 0x81A6;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::ShiftRight { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_sub_y_x() {
+        let opcode: u16 = 0x81A7;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SubYX { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_shift_left() {
+        let opcode: u16 = 0x81AE;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::ShiftLeft { vx: 0x01, vy: 0x0A };
 
         assert_eq!(expected, instruction);
     }

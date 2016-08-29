@@ -1,7 +1,7 @@
 // Trying to emulate a chip-8 computer!
 
 pub mod vm;
-pub mod opcodes;
+pub mod instructions;
 
 use vm::VM;
 

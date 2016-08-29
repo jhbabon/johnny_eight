@@ -41,14 +41,19 @@ pub enum Instruction {
     SkipEqual { vx: u8, vy: u8 },
     LoadByteData { vx: u8, byte: u8 },
     AddByte { vx: u8, byte: u8 },
+    LoadRegisterData { vx: u8, vy: u8 },
+    OR { vx: u8, vy: u8 },
+    AND { vx: u8, vy: u8 },
+    XOR { vx: u8, vy: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
     let opcode = Opcode::new(byte);
 
     match opcode {
-        Opcode { byte: 0x00E0, .. }        => Some(Instruction::Clear),
-        Opcode { byte: 0x00EE, .. }        => Some(Instruction::Return),
+        Opcode { byte: 0x00E0, .. } => Some(Instruction::Clear),
+        Opcode { byte: 0x00EE, .. } => Some(Instruction::Return),
+
         Opcode { id: 0x1000, address, .. } => Some(Instruction::Jump(address)),
         Opcode { id: 0x2000, address, .. } => Some(Instruction::Call(address)),
         Opcode { id: 0x3000, x, data, .. } => Some(Instruction::SkipEqualByte { vx: x, byte: data }),
@@ -56,6 +61,12 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0x5000, x, y, .. }    => Some(Instruction::SkipEqual { vx: x, vy: y }),
         Opcode { id: 0x6000, x, data, .. } => Some(Instruction::LoadByteData { vx: x, byte: data }),
         Opcode { id: 0x7000, x, data, .. } => Some(Instruction::AddByte { vx: x, byte: data }),
+
+        Opcode { id: 0x8000, nibble: 0x00, x, y, .. } => Some(Instruction::LoadRegisterData { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x01, x, y, .. } => Some(Instruction::OR { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x02, x, y, .. } => Some(Instruction::AND { vx: x, vy: y }),
+        Opcode { id: 0x8000, nibble: 0x03, x, y, .. } => Some(Instruction::XOR { vx: x, vy: y }),
+
         _ => None,
     }
 }
@@ -146,6 +157,46 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::AddByte { vx: 0x01, byte: 0xFA };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_load_register_data() {
+        let opcode: u16 = 0x81A0;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::LoadRegisterData { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_or() {
+        let opcode: u16 = 0x81A1;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::OR { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_and() {
+        let opcode: u16 = 0x81A2;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::AND { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_xor() {
+        let opcode: u16 = 0x81A3;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::XOR { vx: 0x01, vy: 0x0A };
 
         assert_eq!(expected, instruction);
     }

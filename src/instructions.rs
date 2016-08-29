@@ -50,7 +50,8 @@ pub enum Instruction {
     ShiftRight { vx: u8, vy: u8 },
     SubYX { vx: u8, vy: u8 },
     ShiftLeft { vx: u8, vy: u8 },
-    SkipNotEqual { vx: u8, vy: u8 }
+    SkipNotEqual { vx: u8, vy: u8 },
+    LoadI { address: u16 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -79,6 +80,7 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0x8000, nibble: 0x0E, x, y, .. } => Some(Instruction::ShiftLeft { vx: x, vy: y }),
 
         Opcode { id: 0x9000, x, y, .. } => Some(Instruction::SkipNotEqual { vx: x, vy: y }),
+        Opcode { id: 0xA000, address, .. } => Some(Instruction::LoadI { address: address }),
 
         _ => None,
     }
@@ -270,6 +272,16 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::SkipNotEqual { vx: 0x01, vy: 0x0A };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_load_i() {
+        let opcode: u16 = 0xA1AF;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::LoadI { address: 0x01AF };
 
         assert_eq!(expected, instruction);
     }

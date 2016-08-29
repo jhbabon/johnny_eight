@@ -54,29 +54,31 @@ pub struct VM {
     sp: u8,                                  // Stack Pointer
 }
 
+impl VM {
+    // Fill the VM with all the information it needs, like fonts registers.
+    pub fn boot(&mut self) {
+        let size = FONTS_ADDR..(FONTS_ADDR + FONTS_SIZE);
+        let mut buffer = BufWriter::new(&mut self.ram[size]);
+
+        buffer.write_all(&FONTS).unwrap();
+    }
+}
+
 impl Default for VM {
     fn default() -> VM {
-        let mut vm = VM {
-            ram: [0; RAM_SIZE],
+        VM {
+            ram:       [0; RAM_SIZE],
             registers: [0; GENERAL_REGISTERS_SIZE],
-            stack: [0; STACK_SIZE],
-            keypad: [0; KEYPAD_SIZE],
-            gfx: [0; DISPLAY_PIXELS],
-            i: 0,
+            stack:     [0; STACK_SIZE],
+            keypad:    [0; KEYPAD_SIZE],
+            gfx:       [0; DISPLAY_PIXELS],
+
+            i:  0,
             dt: 0,
             st: 0,
             pc: 0,
             sp: 0,
-        };
-
-        {
-            // Copy all fonts to memory
-            // TODO: Try to move this to another function/struct
-            let mut buf = BufWriter::new(&mut vm.ram[FONTS_ADDR..(FONTS_ADDR + FONTS_SIZE)]);
-            buf.write_all(FONTS.as_ref()).unwrap();
-        };
-
-        vm
+        }
     }
 }
 
@@ -89,28 +91,6 @@ mod tests {
         let vm: VM = Default::default();
 
         assert_eq!(4096, vm.ram.len());
-    }
-
-    #[test]
-    fn vm_has_the_fonts_in_memory() {
-        let vm: VM = Default::default();
-
-        assert_eq!([0xF0, 0x90, 0x90, 0x90, 0xF0], vm.ram[0..5]);   //0
-        assert_eq!([0x20, 0x60, 0x20, 0x20, 0x70], vm.ram[5..10]);  // 1
-        assert_eq!([0xF0, 0x10, 0xF0, 0x80, 0xF0], vm.ram[10..15]); // 2
-        assert_eq!([0xF0, 0x10, 0xF0, 0x10, 0xF0], vm.ram[15..20]); // 3
-        assert_eq!([0x90, 0x90, 0xF0, 0x10, 0x10], vm.ram[20..25]); // 4
-        assert_eq!([0xF0, 0x80, 0xF0, 0x10, 0xF0], vm.ram[25..30]); // 5
-        assert_eq!([0xF0, 0x80, 0xF0, 0x90, 0xF0], vm.ram[30..35]); // 6
-        assert_eq!([0xF0, 0x10, 0x20, 0x40, 0x40], vm.ram[35..40]); // 7
-        assert_eq!([0xF0, 0x90, 0xF0, 0x90, 0xF0], vm.ram[40..45]); // 8
-        assert_eq!([0xF0, 0x90, 0xF0, 0x10, 0xF0], vm.ram[45..50]); // 9
-        assert_eq!([0xF0, 0x90, 0xF0, 0x90, 0x90], vm.ram[50..55]); // A
-        assert_eq!([0xE0, 0x90, 0xE0, 0x90, 0xE0], vm.ram[55..60]); // B
-        assert_eq!([0xF0, 0x80, 0x80, 0x80, 0xF0], vm.ram[60..65]); // C
-        assert_eq!([0xE0, 0x90, 0x90, 0x90, 0xE0], vm.ram[65..70]); // D
-        assert_eq!([0xF0, 0x80, 0xF0, 0x80, 0xF0], vm.ram[70..75]); // E
-        assert_eq!([0xF0, 0x80, 0xF0, 0x80, 0x80], vm.ram[75..80]); // F
     }
 
     #[test]
@@ -174,5 +154,29 @@ mod tests {
         let vm: VM = Default::default();
 
         assert_eq!((64 * 32), vm.gfx.len());
+    }
+
+    #[test]
+    fn vm_sets_fonts_in_memory_at_boot_time() {
+        let mut vm: VM = Default::default();
+
+        vm.boot();
+
+        assert_eq!([0xF0, 0x90, 0x90, 0x90, 0xF0], vm.ram[0..5]);   // 0
+        assert_eq!([0x20, 0x60, 0x20, 0x20, 0x70], vm.ram[5..10]);  // 1
+        assert_eq!([0xF0, 0x10, 0xF0, 0x80, 0xF0], vm.ram[10..15]); // 2
+        assert_eq!([0xF0, 0x10, 0xF0, 0x10, 0xF0], vm.ram[15..20]); // 3
+        assert_eq!([0x90, 0x90, 0xF0, 0x10, 0x10], vm.ram[20..25]); // 4
+        assert_eq!([0xF0, 0x80, 0xF0, 0x10, 0xF0], vm.ram[25..30]); // 5
+        assert_eq!([0xF0, 0x80, 0xF0, 0x90, 0xF0], vm.ram[30..35]); // 6
+        assert_eq!([0xF0, 0x10, 0x20, 0x40, 0x40], vm.ram[35..40]); // 7
+        assert_eq!([0xF0, 0x90, 0xF0, 0x90, 0xF0], vm.ram[40..45]); // 8
+        assert_eq!([0xF0, 0x90, 0xF0, 0x10, 0xF0], vm.ram[45..50]); // 9
+        assert_eq!([0xF0, 0x90, 0xF0, 0x90, 0x90], vm.ram[50..55]); // A
+        assert_eq!([0xE0, 0x90, 0xE0, 0x90, 0xE0], vm.ram[55..60]); // B
+        assert_eq!([0xF0, 0x80, 0x80, 0x80, 0xF0], vm.ram[60..65]); // C
+        assert_eq!([0xE0, 0x90, 0x90, 0x90, 0xE0], vm.ram[65..70]); // D
+        assert_eq!([0xF0, 0x80, 0xF0, 0x80, 0xF0], vm.ram[70..75]); // E
+        assert_eq!([0xF0, 0x80, 0xF0, 0x80, 0x80], vm.ram[75..80]); // F
     }
 }

@@ -40,6 +40,7 @@ pub enum Instruction {
     SkipNotEqualByte { vx: u8, byte: u8 },
     SkipEqual { vx: u8, vy: u8 },
     LoadByteData { vx: u8, byte: u8 },
+    AddByte { vx: u8, byte: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -54,6 +55,7 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0x4000, x, data, .. } => Some(Instruction::SkipNotEqualByte { vx: x, byte: data }),
         Opcode { id: 0x5000, x, y, .. }    => Some(Instruction::SkipEqual { vx: x, vy: y }),
         Opcode { id: 0x6000, x, data, .. } => Some(Instruction::LoadByteData { vx: x, byte: data }),
+        Opcode { id: 0x7000, x, data, .. } => Some(Instruction::AddByte { vx: x, byte: data }),
         _ => None,
     }
 }
@@ -134,6 +136,16 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::LoadByteData { vx: 0x01, byte: 0xFA };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_add_byte() {
+        let opcode: u16 = 0x71FA;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::AddByte { vx: 0x01, byte: 0xFA };
 
         assert_eq!(expected, instruction);
     }

@@ -57,6 +57,15 @@ pub enum Instruction {
     Draw { vx: u8, vy: u8, nibble: u8 },
     SkipOnKeyPressed { vx: u8 },
     SkipOnKeyNotPressed { vx: u8 },
+    SaveDelayTimer { vx: u8 },
+    WaitKey { vx: u8 },
+    SetDelayTimer { vx: u8 },
+    SetSoundTimer { vx: u8 },
+    AddI { vx: u8 },
+    LoadFont { vx: u8 },
+    Bcd { vx: u8 },
+    Write { vx: u8 },
+    Read { vx: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -84,14 +93,24 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0x8000, nibble: 0x07, x, y, .. } => Some(Instruction::SubYX { vx: x, vy: y }),
         Opcode { id: 0x8000, nibble: 0x0E, x, y, .. } => Some(Instruction::ShiftLeft { vx: x, vy: y }),
 
-        Opcode { id: 0x9000, x, y, .. } => Some(Instruction::SkipNotEqual { vx: x, vy: y }),
-        Opcode { id: 0xA000, address, .. } => Some(Instruction::LoadI { address: address }),
-        Opcode { id: 0xB000, address, .. } => Some(Instruction::JumpPlus { address: address }),
-        Opcode { id: 0xC000, x, data, .. } => Some(Instruction::RandomMask { vx: x, byte: data }),
+        Opcode { id: 0x9000, x, y, .. }         => Some(Instruction::SkipNotEqual { vx: x, vy: y }),
+        Opcode { id: 0xA000, address, .. }      => Some(Instruction::LoadI { address: address }),
+        Opcode { id: 0xB000, address, .. }      => Some(Instruction::JumpPlus { address: address }),
+        Opcode { id: 0xC000, x, data, .. }      => Some(Instruction::RandomMask { vx: x, byte: data }),
         Opcode { id: 0xD000, x, y, nibble, .. } => Some(Instruction::Draw { vx: x, vy: y, nibble: nibble }),
 
         Opcode { id: 0xE000, y: 0x09, nibble: 0x0E, x, .. } => Some(Instruction::SkipOnKeyPressed { vx: x }),
         Opcode { id: 0xE000, y: 0x0A, nibble: 0x01, x, .. } => Some(Instruction::SkipOnKeyNotPressed { vx: x }),
+
+        Opcode { id: 0xF000, y: 0x00, nibble: 0x07, x, .. } => Some(Instruction::SaveDelayTimer { vx: x }),
+        Opcode { id: 0xF000, y: 0x00, nibble: 0x0A, x, .. } => Some(Instruction::WaitKey { vx: x }),
+        Opcode { id: 0xF000, y: 0x01, nibble: 0x05, x, .. } => Some(Instruction::SetDelayTimer { vx: x }),
+        Opcode { id: 0xF000, y: 0x01, nibble: 0x08, x, .. } => Some(Instruction::SetSoundTimer { vx: x }),
+        Opcode { id: 0xF000, y: 0x01, nibble: 0x0E, x, .. } => Some(Instruction::AddI { vx: x }),
+        Opcode { id: 0xF000, y: 0x02, nibble: 0x09, x, .. } => Some(Instruction::LoadFont { vx: x }),
+        Opcode { id: 0xF000, y: 0x03, nibble: 0x03, x, .. } => Some(Instruction::Bcd { vx: x }),
+        Opcode { id: 0xF000, y: 0x05, nibble: 0x05, x, .. } => Some(Instruction::Write { vx: x }),
+        Opcode { id: 0xF000, y: 0x06, nibble: 0x05, x, .. } => Some(Instruction::Read { vx: x }),
 
         _ => None,
     }
@@ -343,6 +362,96 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::SkipOnKeyNotPressed { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_save_delay_timer() {
+        let opcode: u16 = 0xF207;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SaveDelayTimer { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_wait_key() {
+        let opcode: u16 = 0xF20A;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::WaitKey { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_set_delay_timer() {
+        let opcode: u16 = 0xF215;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SetDelayTimer { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_set_sound_timer() {
+        let opcode: u16 = 0xF218;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SetSoundTimer { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_add_i() {
+        let opcode: u16 = 0xF21E;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::AddI { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_load_font() {
+        let opcode: u16 = 0xF229;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::LoadFont { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_bcd() {
+        let opcode: u16 = 0xF233;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::Bcd { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_write() {
+        let opcode: u16 = 0xF255;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::Write { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_read() {
+        let opcode: u16 = 0xF265;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::Read { vx: 0x02 };
 
         assert_eq!(expected, instruction);
     }

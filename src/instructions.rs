@@ -55,6 +55,8 @@ pub enum Instruction {
     JumpPlus { address: u16 },
     RandomMask { vx: u8, byte: u8 },
     Draw { vx: u8, vy: u8, nibble: u8 },
+    SkipOnKeyPressed { vx: u8 },
+    SkipOnKeyNotPressed { vx: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -87,6 +89,9 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0xB000, address, .. } => Some(Instruction::JumpPlus { address: address }),
         Opcode { id: 0xC000, x, data, .. } => Some(Instruction::RandomMask { vx: x, byte: data }),
         Opcode { id: 0xD000, x, y, nibble, .. } => Some(Instruction::Draw { vx: x, vy: y, nibble: nibble }),
+
+        Opcode { id: 0xE000, y: 0x09, nibble: 0x0E, x, .. } => Some(Instruction::SkipOnKeyPressed { vx: x }),
+        Opcode { id: 0xE000, y: 0x0A, nibble: 0x01, x, .. } => Some(Instruction::SkipOnKeyNotPressed { vx: x }),
 
         _ => None,
     }
@@ -318,6 +323,26 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::Draw { vx: 0x01, vy: 0x0A, nibble: 0x0F };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_skip_on_key_pressed() {
+        let opcode: u16 = 0xE29E;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SkipOnKeyPressed { vx: 0x02 };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_skip_on_key_not_pressed() {
+        let opcode: u16 = 0xE2A1;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::SkipOnKeyNotPressed { vx: 0x02 };
 
         assert_eq!(expected, instruction);
     }

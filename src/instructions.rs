@@ -52,7 +52,8 @@ pub enum Instruction {
     ShiftLeft { vx: u8, vy: u8 },
     SkipNotEqual { vx: u8, vy: u8 },
     LoadI { address: u16 },
-    JumpPlus { address: u16 }
+    JumpPlus { address: u16 },
+    RandomMask { vx: u8, byte: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -83,6 +84,7 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0x9000, x, y, .. } => Some(Instruction::SkipNotEqual { vx: x, vy: y }),
         Opcode { id: 0xA000, address, .. } => Some(Instruction::LoadI { address: address }),
         Opcode { id: 0xB000, address, .. } => Some(Instruction::JumpPlus { address: address }),
+        Opcode { id: 0xC000, x, data, .. } => Some(Instruction::RandomMask { vx: x, byte: data }),
 
         _ => None,
     }
@@ -294,6 +296,16 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::JumpPlus { address: 0x01AF };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_random_mask() {
+        let opcode: u16 = 0xC1AF;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::RandomMask { vx: 0x01, byte: 0xAF };
 
         assert_eq!(expected, instruction);
     }

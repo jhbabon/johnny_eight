@@ -54,6 +54,7 @@ pub enum Instruction {
     LoadI { address: u16 },
     JumpPlus { address: u16 },
     RandomMask { vx: u8, byte: u8 },
+    Draw { vx: u8, vy: u8, nibble: u8 },
 }
 
 pub fn decode(byte: u16) -> Option<Instruction> {
@@ -85,6 +86,7 @@ pub fn decode(byte: u16) -> Option<Instruction> {
         Opcode { id: 0xA000, address, .. } => Some(Instruction::LoadI { address: address }),
         Opcode { id: 0xB000, address, .. } => Some(Instruction::JumpPlus { address: address }),
         Opcode { id: 0xC000, x, data, .. } => Some(Instruction::RandomMask { vx: x, byte: data }),
+        Opcode { id: 0xD000, x, y, nibble, .. } => Some(Instruction::Draw { vx: x, vy: y, nibble: nibble }),
 
         _ => None,
     }
@@ -306,6 +308,16 @@ mod tests {
         let instruction = decode(opcode).unwrap();
 
         let expected = Instruction::RandomMask { vx: 0x01, byte: 0xAF };
+
+        assert_eq!(expected, instruction);
+    }
+
+    #[test]
+    fn it_decodes_draw() {
+        let opcode: u16 = 0xD1AF;
+        let instruction = decode(opcode).unwrap();
+
+        let expected = Instruction::Draw { vx: 0x01, vy: 0x0A, nibble: 0x0F };
 
         assert_eq!(expected, instruction);
     }

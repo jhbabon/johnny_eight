@@ -48,6 +48,8 @@ pub enum Instruction {
     SkipOnNotEqualByte(Opcode),
     // SE Vx, Vy; Skip next instruction if Vx = Vy
     SkipOnEqual(Opcode),
+    // SNE Vx, Vy; Skip next instruction if Vx != Vy
+    SkipOnNotEqual(Opcode),
 
     // LD Vx, byte; Set Vx = byte
     SetByte(Opcode),
@@ -63,19 +65,18 @@ pub enum Instruction {
     And(Opcode),
     // XOR Vx, Vy; Set Vx = Vx XOR Vy
     Xor(Opcode),
+
     // ADD Vx, Vy; Set Vx = Vx + Vy, set VF = carry
     Add(Opcode),
     // SUB Vx, Vy; Set Vx = Vx - Vy, set VF = NOT borrow
     SubXY(Opcode),
-    // SHR Vx, Vy; Set Vx = Vy SHR 1
-    ShiftRight(Opcode),
     // SUBN Vx, Vy; Set Vx = Vy - Vx, set VF = NOT borrow
     SubYX(Opcode),
+
+    // SHR Vx, Vy; Set Vx = Vy SHR 1
+    ShiftRight(Opcode),
     // SHL Vx, Vy; Set Vx = Vy SHL 1
     ShiftLeft(Opcode),
-
-    // SNE Vx, Vy; Skip next instruction if Vx != Vy
-    SkipOnNotEqual(Opcode),
 
     // LD I, addr; Set I = addr
     SetI(Opcode),

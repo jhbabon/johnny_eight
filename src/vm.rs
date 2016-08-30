@@ -1,5 +1,8 @@
 // Chip-8 Virtual Machine
 
+// TODO: Use constants in tests
+// TODO: Use consistent indexes with hex values.
+
 use instructions::Instruction;
 use std::io::{Write, BufWriter};
 
@@ -107,6 +110,80 @@ impl VM {
                 if vx == vy {
                     self.pc += 2;
                 };
+            },
+
+            Instruction::SetByte(opcode) => {
+                self.registers[opcode.x as usize] = opcode.data;
+            },
+
+            Instruction::AddByte(opcode) => {
+                self.registers[opcode.x as usize] += opcode.data;
+            },
+
+            Instruction::Set(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+                self.registers[opcode.x as usize] = vy;
+            },
+
+            Instruction::Or(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+                let vx = self.registers[opcode.x as usize];
+
+                self.registers[opcode.x as usize] = vx | vy;
+            },
+
+            Instruction::And(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+                let vx = self.registers[opcode.x as usize];
+
+                self.registers[opcode.x as usize] = vx & vy;
+            },
+
+            Instruction::Xor(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+                let vx = self.registers[opcode.x as usize];
+
+                self.registers[opcode.x as usize] = vx ^ vy;
+            },
+
+            Instruction::Add(opcode) => {
+                let vy = self.registers[opcode.y as usize] as u16;
+                let vx = self.registers[opcode.x as usize] as u16;
+                let add = vx + vy;
+
+                if add > 0xFF {
+                    self.registers[9] = 1;
+                } else {
+                    self.registers[9] = 0;
+                }
+
+                self.registers[opcode.x as usize] = add as u8;
+            },
+
+            Instruction::SubXY(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+                let vx = self.registers[opcode.x as usize];
+
+                if vx > vy {
+                    self.registers[9] = 1;
+                } else {
+                    self.registers[9] = 0;
+                }
+
+                self.registers[opcode.x as usize] = vx.wrapping_sub(vy);
+            },
+
+            Instruction::SubYX(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+                let vx = self.registers[opcode.x as usize];
+
+                if vy > vx {
+                    self.registers[9] = 1;
+                } else {
+                    self.registers[9] = 0;
+                }
+
+                self.registers[opcode.x as usize] = vy.wrapping_sub(vx);
             },
 
             _ => {}
@@ -380,5 +457,187 @@ mod tests {
         vm.exec(instruction);
 
         assert_eq!(0x0000, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_set_byte_instruction() {
+        let instruction = Instruction::decode(0x62AB).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.exec(instruction);
+
+        assert_eq!(0xAB, vm.registers[2]);
+    }
+
+    #[test]
+    fn vm_executes_add_byte_instruction() {
+        let instruction = Instruction::decode(0x7211).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x11;
+
+        vm.exec(instruction);
+
+        assert_eq!(0x22, vm.registers[2]);
+    }
+
+    #[test]
+    fn vm_executes_set_instruction() {
+        let instruction = Instruction::decode(0x8210).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x11;
+        vm.registers[1] = 0xAB;
+
+        vm.exec(instruction);
+
+        assert_eq!(0xAB, vm.registers[2]);
+    }
+
+    #[test]
+    fn vm_executes_or_instruction() {
+        let instruction = Instruction::decode(0x8211).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x11; // Vx
+        vm.registers[1] = 0xAB; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xBB, vm.registers[2]);
+    }
+
+    #[test]
+    fn vm_executes_and_instruction() {
+        let instruction = Instruction::decode(0x8212).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x11; // Vx
+        vm.registers[1] = 0xAB; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0x01, vm.registers[2]);
+    }
+
+    #[test]
+    fn vm_executes_xor_instruction() {
+        let instruction = Instruction::decode(0x8213).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x11; // Vx
+        vm.registers[1] = 0xAB; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xBA, vm.registers[2]);
+    }
+
+    #[test]
+    fn vm_executes_add_instruction_with_carry() {
+        let instruction = Instruction::decode(0x8214).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x83; // Vx
+        vm.registers[1] = 0x7D; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0, vm.registers[2]);
+        assert_eq!(0x1, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_add_instruction_without_carry() {
+        let instruction = Instruction::decode(0x8214).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x82; // Vx
+        vm.registers[1] = 0x7D; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xFF, vm.registers[2]);
+        assert_eq!(0x0, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_sub_x_y_instruction_with_borrow() {
+        let instruction = Instruction::decode(0x8215).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x7D; // Vx
+        vm.registers[1] = 0x82; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xFB, vm.registers[2]);
+        assert_eq!(0x0, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_sub_x_y_instruction_without_borrow() {
+        let instruction = Instruction::decode(0x8215).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x82; // Vx
+        vm.registers[1] = 0x7D; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0x5, vm.registers[2]);
+        assert_eq!(0x1, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_sub_y_x_instruction_with_borrow() {
+        let instruction = Instruction::decode(0x8217).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x82; // Vx
+        vm.registers[1] = 0x7D; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xFB, vm.registers[2]);
+        assert_eq!(0x0, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_sub_y_x_instruction_without_borrow() {
+        let instruction = Instruction::decode(0x8217).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x7D; // Vx
+        vm.registers[1] = 0x82; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0x5, vm.registers[2]);
+        assert_eq!(0x1, vm.registers[9]);
     }
 }

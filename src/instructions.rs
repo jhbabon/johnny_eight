@@ -120,51 +120,53 @@ pub enum Instruction {
     Read(Opcode),
 }
 
-pub fn decode(bytes: u16) -> Option<Instruction> {
-    let opcode = Opcode::new(bytes);
+impl Instruction {
+    pub fn decode(bytes: u16) -> Option<Instruction> {
+        let opcode = Opcode::new(bytes);
 
-    match opcode {
-        Opcode { bytes: 0x00E0, .. } => Some(Instruction::Clear),
-        Opcode { bytes: 0x00EE, .. } => Some(Instruction::Return),
+        match opcode {
+            Opcode { bytes: 0x00E0, .. } => Some(Instruction::Clear),
+            Opcode { bytes: 0x00EE, .. } => Some(Instruction::Return),
 
-        Opcode { id: 0x1, .. } => Some(Instruction::Jump(opcode)),
-        Opcode { id: 0x2, .. } => Some(Instruction::Call(opcode)),
-        Opcode { id: 0x3, .. } => Some(Instruction::SkipOnEqualByte(opcode)),
-        Opcode { id: 0x4, .. } => Some(Instruction::SkipOnNotEqualByte(opcode)),
-        Opcode { id: 0x5, .. } => Some(Instruction::SkipOnEqual(opcode)),
-        Opcode { id: 0x6, .. } => Some(Instruction::SetByte(opcode)),
-        Opcode { id: 0x7, .. } => Some(Instruction::AddByte(opcode)),
+            Opcode { id: 0x1, .. } => Some(Instruction::Jump(opcode)),
+            Opcode { id: 0x2, .. } => Some(Instruction::Call(opcode)),
+            Opcode { id: 0x3, .. } => Some(Instruction::SkipOnEqualByte(opcode)),
+            Opcode { id: 0x4, .. } => Some(Instruction::SkipOnNotEqualByte(opcode)),
+            Opcode { id: 0x5, .. } => Some(Instruction::SkipOnEqual(opcode)),
+            Opcode { id: 0x6, .. } => Some(Instruction::SetByte(opcode)),
+            Opcode { id: 0x7, .. } => Some(Instruction::AddByte(opcode)),
 
-        Opcode { id: 0x8, nibble: 0x0, .. } => Some(Instruction::Set(opcode)),
-        Opcode { id: 0x8, nibble: 0x1, .. } => Some(Instruction::Or(opcode)),
-        Opcode { id: 0x8, nibble: 0x2, .. } => Some(Instruction::And(opcode)),
-        Opcode { id: 0x8, nibble: 0x3, .. } => Some(Instruction::Xor(opcode)),
-        Opcode { id: 0x8, nibble: 0x4, .. } => Some(Instruction::Add(opcode)),
-        Opcode { id: 0x8, nibble: 0x5, .. } => Some(Instruction::SubXY(opcode)),
-        Opcode { id: 0x8, nibble: 0x6, .. } => Some(Instruction::ShiftRight(opcode)),
-        Opcode { id: 0x8, nibble: 0x7, .. } => Some(Instruction::SubYX(opcode)),
-        Opcode { id: 0x8, nibble: 0xE, .. } => Some(Instruction::ShiftLeft(opcode)),
+            Opcode { id: 0x8, nibble: 0x0, .. } => Some(Instruction::Set(opcode)),
+            Opcode { id: 0x8, nibble: 0x1, .. } => Some(Instruction::Or(opcode)),
+            Opcode { id: 0x8, nibble: 0x2, .. } => Some(Instruction::And(opcode)),
+            Opcode { id: 0x8, nibble: 0x3, .. } => Some(Instruction::Xor(opcode)),
+            Opcode { id: 0x8, nibble: 0x4, .. } => Some(Instruction::Add(opcode)),
+            Opcode { id: 0x8, nibble: 0x5, .. } => Some(Instruction::SubXY(opcode)),
+            Opcode { id: 0x8, nibble: 0x6, .. } => Some(Instruction::ShiftRight(opcode)),
+            Opcode { id: 0x8, nibble: 0x7, .. } => Some(Instruction::SubYX(opcode)),
+            Opcode { id: 0x8, nibble: 0xE, .. } => Some(Instruction::ShiftLeft(opcode)),
 
-        Opcode { id: 0x9, .. } => Some(Instruction::SkipOnNotEqual(opcode)),
-        Opcode { id: 0xA, .. } => Some(Instruction::SetI(opcode)),
-        Opcode { id: 0xB, .. } => Some(Instruction::JumpPlus(opcode)),
-        Opcode { id: 0xC, .. } => Some(Instruction::RandomMask(opcode)),
-        Opcode { id: 0xD, .. } => Some(Instruction::Draw(opcode)),
+            Opcode { id: 0x9, .. } => Some(Instruction::SkipOnNotEqual(opcode)),
+            Opcode { id: 0xA, .. } => Some(Instruction::SetI(opcode)),
+            Opcode { id: 0xB, .. } => Some(Instruction::JumpPlus(opcode)),
+            Opcode { id: 0xC, .. } => Some(Instruction::RandomMask(opcode)),
+            Opcode { id: 0xD, .. } => Some(Instruction::Draw(opcode)),
 
-        Opcode { id: 0xE, y: 0x9, nibble: 0xE, .. } => Some(Instruction::SkipOnKeyPressed(opcode)),
-        Opcode { id: 0xE, y: 0xA, nibble: 0x1, .. } => Some(Instruction::SkipOnKeyNotPressed(opcode)),
+            Opcode { id: 0xE, y: 0x9, nibble: 0xE, .. } => Some(Instruction::SkipOnKeyPressed(opcode)),
+            Opcode { id: 0xE, y: 0xA, nibble: 0x1, .. } => Some(Instruction::SkipOnKeyNotPressed(opcode)),
 
-        Opcode { id: 0xF, y: 0x0, nibble: 0x7, .. } => Some(Instruction::StoreDelayTimer(opcode)),
-        Opcode { id: 0xF, y: 0x0, nibble: 0xA, .. } => Some(Instruction::WaitKey(opcode)),
-        Opcode { id: 0xF, y: 0x1, nibble: 0x5, .. } => Some(Instruction::SetDelayTimer(opcode)),
-        Opcode { id: 0xF, y: 0x1, nibble: 0x8, .. } => Some(Instruction::SetSoundTimer(opcode)),
-        Opcode { id: 0xF, y: 0x1, nibble: 0xE, .. } => Some(Instruction::AddI(opcode)),
-        Opcode { id: 0xF, y: 0x2, nibble: 0x9, .. } => Some(Instruction::SetFont(opcode)),
-        Opcode { id: 0xF, y: 0x3, nibble: 0x3, .. } => Some(Instruction::Bcd(opcode)),
-        Opcode { id: 0xF, y: 0x5, nibble: 0x5, .. } => Some(Instruction::Store(opcode)),
-        Opcode { id: 0xF, y: 0x6, nibble: 0x5, .. } => Some(Instruction::Read(opcode)),
+            Opcode { id: 0xF, y: 0x0, nibble: 0x7, .. } => Some(Instruction::StoreDelayTimer(opcode)),
+            Opcode { id: 0xF, y: 0x0, nibble: 0xA, .. } => Some(Instruction::WaitKey(opcode)),
+            Opcode { id: 0xF, y: 0x1, nibble: 0x5, .. } => Some(Instruction::SetDelayTimer(opcode)),
+            Opcode { id: 0xF, y: 0x1, nibble: 0x8, .. } => Some(Instruction::SetSoundTimer(opcode)),
+            Opcode { id: 0xF, y: 0x1, nibble: 0xE, .. } => Some(Instruction::AddI(opcode)),
+            Opcode { id: 0xF, y: 0x2, nibble: 0x9, .. } => Some(Instruction::SetFont(opcode)),
+            Opcode { id: 0xF, y: 0x3, nibble: 0x3, .. } => Some(Instruction::Bcd(opcode)),
+            Opcode { id: 0xF, y: 0x5, nibble: 0x5, .. } => Some(Instruction::Store(opcode)),
+            Opcode { id: 0xF, y: 0x6, nibble: 0x5, .. } => Some(Instruction::Read(opcode)),
 
-        _ => None,
+            _ => None,
+        }
     }
 }
 
@@ -189,7 +191,7 @@ mod tests {
     #[test]
     fn it_decodes_clear() {
         let bytes: u16 = 0x00E0;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         assert_eq!(Instruction::Clear, instruction);
     }
@@ -197,7 +199,7 @@ mod tests {
     #[test]
     fn it_decodes_return() {
         let bytes: u16 = 0x00EE;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         assert_eq!(Instruction::Return, instruction);
     }
@@ -205,7 +207,7 @@ mod tests {
     #[test]
     fn it_decodes_jump() {
         let bytes: u16 = 0x1A1E;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode  = Opcode::new(bytes);
         let expected = Instruction::Jump(opcode);
@@ -216,7 +218,7 @@ mod tests {
     #[test]
     fn it_decodes_call() {
         let bytes: u16 = 0x2A1E;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Call(opcode);
@@ -227,7 +229,7 @@ mod tests {
     #[test]
     fn it_decodes_skip_on_equal_byte() {
         let bytes: u16 = 0x3122;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SkipOnEqualByte(opcode);
@@ -238,7 +240,7 @@ mod tests {
     #[test]
     fn it_decodes_skip_on_not_equal_byte() {
         let bytes: u16 = 0x4122;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SkipOnNotEqualByte(opcode);
@@ -249,7 +251,7 @@ mod tests {
     #[test]
     fn it_decodes_skip_on_equal() {
         let bytes: u16 = 0x51F0;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SkipOnEqual(opcode);
@@ -260,7 +262,7 @@ mod tests {
     #[test]
     fn it_decodes_set_byte() {
         let bytes: u16 = 0x61FA;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SetByte(opcode);
@@ -271,7 +273,7 @@ mod tests {
     #[test]
     fn it_decodes_add_byte() {
         let bytes: u16 = 0x71FA;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::AddByte(opcode);
@@ -282,7 +284,7 @@ mod tests {
     #[test]
     fn it_decodes_set() {
         let bytes: u16 = 0x81A0;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Set(opcode);
@@ -293,7 +295,7 @@ mod tests {
     #[test]
     fn it_decodes_or() {
         let bytes: u16 = 0x81A1;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Or(opcode);
@@ -304,7 +306,7 @@ mod tests {
     #[test]
     fn it_decodes_and() {
         let bytes: u16 = 0x81A2;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::And(opcode);
@@ -315,7 +317,7 @@ mod tests {
     #[test]
     fn it_decodes_xor() {
         let bytes: u16 = 0x81A3;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Xor(opcode);
@@ -326,7 +328,7 @@ mod tests {
     #[test]
     fn it_decodes_add() {
         let bytes: u16 = 0x81A4;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Add(opcode);
@@ -337,7 +339,7 @@ mod tests {
     #[test]
     fn it_decodes_sub_x_y() {
         let bytes: u16 = 0x81A5;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SubXY(opcode);
@@ -348,7 +350,7 @@ mod tests {
     #[test]
     fn it_decodes_shift_right() {
         let bytes: u16 = 0x81A6;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::ShiftRight(opcode);
@@ -359,7 +361,7 @@ mod tests {
     #[test]
     fn it_decodes_sub_y_x() {
         let bytes: u16 = 0x81A7;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SubYX(opcode);
@@ -370,7 +372,7 @@ mod tests {
     #[test]
     fn it_decodes_shift_left() {
         let bytes: u16 = 0x81AE;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::ShiftLeft(opcode);
@@ -381,7 +383,7 @@ mod tests {
     #[test]
     fn it_decodes_skip_on_not_equal() {
         let bytes: u16 = 0x91A0;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SkipOnNotEqual(opcode);
@@ -392,7 +394,7 @@ mod tests {
     #[test]
     fn it_decodes_set_i() {
         let bytes: u16 = 0xA1AF;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SetI(opcode);
@@ -403,7 +405,7 @@ mod tests {
     #[test]
     fn it_decodes_jump_plus() {
         let bytes: u16 = 0xB1AF;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::JumpPlus(opcode);
@@ -414,7 +416,7 @@ mod tests {
     #[test]
     fn it_decodes_random_mask() {
         let bytes: u16 = 0xC1AF;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::RandomMask(opcode);
@@ -425,7 +427,7 @@ mod tests {
     #[test]
     fn it_decodes_draw() {
         let bytes: u16 = 0xD1AF;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Draw(opcode);
@@ -436,7 +438,7 @@ mod tests {
     #[test]
     fn it_decodes_skip_on_key_pressed() {
         let bytes: u16 = 0xE29E;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SkipOnKeyPressed(opcode);
@@ -447,7 +449,7 @@ mod tests {
     #[test]
     fn it_decodes_skip_on_key_not_pressed() {
         let bytes: u16 = 0xE2A1;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SkipOnKeyNotPressed(opcode);
@@ -458,7 +460,7 @@ mod tests {
     #[test]
     fn it_decodes_store_delay_timer() {
         let bytes: u16 = 0xF207;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::StoreDelayTimer(opcode);
@@ -469,7 +471,7 @@ mod tests {
     #[test]
     fn it_decodes_wait_key() {
         let bytes: u16 = 0xF20A;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::WaitKey(opcode);
@@ -480,7 +482,7 @@ mod tests {
     #[test]
     fn it_decodes_set_delay_timer() {
         let bytes: u16 = 0xF215;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SetDelayTimer(opcode);
@@ -491,7 +493,7 @@ mod tests {
     #[test]
     fn it_decodes_set_sound_timer() {
         let bytes: u16 = 0xF218;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SetSoundTimer(opcode);
@@ -502,7 +504,7 @@ mod tests {
     #[test]
     fn it_decodes_add_i() {
         let bytes: u16 = 0xF21E;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::AddI(opcode);
@@ -513,7 +515,7 @@ mod tests {
     #[test]
     fn it_decodes_set_font() {
         let bytes: u16 = 0xF229;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::SetFont(opcode);
@@ -524,7 +526,7 @@ mod tests {
     #[test]
     fn it_decodes_bcd() {
         let bytes: u16 = 0xF233;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Bcd(opcode);
@@ -535,7 +537,7 @@ mod tests {
     #[test]
     fn it_decodes_store() {
         let bytes: u16 = 0xF255;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Store(opcode);
@@ -546,7 +548,7 @@ mod tests {
     #[test]
     fn it_decodes_read() {
         let bytes: u16 = 0xF265;
-        let instruction = decode(bytes).unwrap();
+        let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
         let expected = Instruction::Read(opcode);

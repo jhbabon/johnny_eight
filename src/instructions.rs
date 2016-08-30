@@ -7,13 +7,13 @@ const ID_MASK: u16      = 0xF000;
 
 #[derive(Debug,Copy,Clone,PartialEq)]
 pub struct Opcode {
-    bytes: u16,
-    address: u16,
-    x: u8,
-    y: u8,
-    data: u8,
-    nibble: u8,
-    id: u8,
+    pub bytes: u16,
+    pub address: u16,
+    pub x: u8,
+    pub y: u8,
+    pub data: u8,
+    pub nibble: u8,
+    pub id: u8,
 }
 
 impl Opcode {

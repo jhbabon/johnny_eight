@@ -1,5 +1,6 @@
 // Chip-8 Virtual Machine
 
+use instructions::Instruction;
 use std::io::{Write, BufWriter};
 
 const RAM_SIZE: usize = 4096;
@@ -51,7 +52,7 @@ pub struct VM {
     st: u8,                                  // Sound Timer register
 
     pc: u16,                                 // Program Counter
-    sp: u8,                                  // Stack Pointer
+    sp: usize,                               // Stack Pointer
 }
 
 impl VM {
@@ -61,6 +62,55 @@ impl VM {
         let mut buffer = BufWriter::new(&mut self.ram[size]);
 
         buffer.write_all(&FONTS).unwrap();
+    }
+
+    pub fn exec(&mut self, instruction: Instruction) {
+        match instruction {
+            Instruction::Clear => {
+                for pixel in self.gfx.iter_mut() {
+                    *pixel = 0;
+                }
+            },
+
+            Instruction::Return => {
+                self.pc = self.stack[self.sp];
+                self.sp -= 1;
+            },
+
+            Instruction::Jump(opcode) => {
+                self.pc = opcode.address;
+            },
+
+            Instruction::Call(opcode) => {
+                self.sp += 1;
+                self.stack[self.sp] = self.pc;
+                self.pc = opcode.address;
+            },
+
+            Instruction::SkipOnEqualByte(opcode) => {
+                let vx = self.registers[opcode.x as usize];
+                if vx == opcode.data {
+                    self.pc += 2;
+                };
+            },
+
+            Instruction::SkipOnNotEqualByte(opcode) => {
+                let vx = self.registers[opcode.x as usize];
+                if vx != opcode.data {
+                    self.pc += 2;
+                };
+            },
+
+            Instruction::SkipOnEqual(opcode) => {
+                let vx = self.registers[opcode.x as usize];
+                let vy = self.registers[opcode.y as usize];
+                if vx == vy {
+                    self.pc += 2;
+                };
+            },
+
+            _ => {}
+        }
     }
 }
 
@@ -85,6 +135,7 @@ impl Default for VM {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use instructions::Instruction;
 
     #[test]
     fn vm_has_4k_of_memory() {
@@ -132,7 +183,7 @@ mod tests {
     fn vm_has_the_sp_register() {
         let vm: VM = Default::default();
 
-        assert_eq!(0 as u8, vm.sp);
+        assert_eq!(0, vm.sp);
     }
 
     #[test]
@@ -178,5 +229,156 @@ mod tests {
         assert_eq!([0xE0, 0x90, 0x90, 0x90, 0xE0], vm.ram[65..70]); // D
         assert_eq!([0xF0, 0x80, 0xF0, 0x80, 0xF0], vm.ram[70..75]); // E
         assert_eq!([0xF0, 0x80, 0xF0, 0x80, 0x80], vm.ram[75..80]); // F
+    }
+
+    #[test]
+    fn vm_executes_clear_instruction() {
+        let instruction = Instruction::decode(0x00E0).unwrap();
+        let mut vm: VM = VM {
+            gfx: [1; (64 * 32)], // set a black screen
+            ..Default::default()
+        };
+        vm.boot();
+
+        vm.exec(instruction);
+
+        assert!(vm.gfx.iter().all(|&x| x == 0));
+    }
+
+    #[test]
+    fn vm_executes_return_instruction() {
+        let instruction = Instruction::decode(0x00EE).unwrap();
+        let mut stack = [0; 16];
+        stack[1] = 0xA1;
+
+        let mut vm: VM = VM {
+            stack: stack,
+            sp: 1,
+            pc: 0,
+
+            ..Default::default()
+        };
+        vm.boot();
+
+        vm.exec(instruction);
+
+        assert_eq!(0xA1, vm.pc);
+        assert_eq!(0, vm.sp);
+    }
+
+    #[test]
+    fn vm_executes_jump_instruction() {
+        let instruction = Instruction::decode(0x1FA1).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0FA1, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_call_instruction() {
+        let instruction = Instruction::decode(0x2FA1).unwrap();
+
+        let mut vm: VM = VM {
+            pc: 0x0123,
+
+            ..Default::default()
+        };
+        vm.boot();
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0FA1, vm.pc);
+        assert_eq!(1, vm.sp);
+        assert_eq!(0x0123, vm.stack[1]);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_equal_byte_instruction_with_equal_values() {
+        let instruction = Instruction::decode(0x32AB).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAB; // same value as the fixture
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0002, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_equal_byte_instruction_with_diff_values() {
+        let instruction = Instruction::decode(0x32AB).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAF; // different value as the fixture
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0000, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_not_equal_byte_instruction_with_equal_values() {
+        let instruction = Instruction::decode(0x42AB).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAB; // same value as the fixture
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0000, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_not_equal_byte_instruction_with_diff_values() {
+        let instruction = Instruction::decode(0x42AB).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAF; // different value as the fixture
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0002, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_equal_instruction_with_equal_values() {
+        let instruction = Instruction::decode(0x5280).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAB;
+        vm.registers[8] = 0xAB;
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0002, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_equal_instruction_with_diff_values() {
+        let instruction = Instruction::decode(0x5280).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAF;
+        vm.registers[8] = 0x12;
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0000, vm.pc);
     }
 }

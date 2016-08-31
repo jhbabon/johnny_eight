@@ -169,7 +169,7 @@ fn vm_executes_skip_on_equal_byte_instruction_with_equal_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAB; // same value as the fixture
+    vm.registers[0x2] = 0xAB; // same value as the fixture
 
     vm.exec(instruction);
 
@@ -183,7 +183,7 @@ fn vm_executes_skip_on_equal_byte_instruction_with_diff_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAF; // different value as the fixture
+    vm.registers[0x2] = 0xAF; // different value as the fixture
 
     vm.exec(instruction);
 
@@ -197,7 +197,7 @@ fn vm_executes_skip_on_not_equal_byte_instruction_with_equal_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAB; // same value as the fixture
+    vm.registers[0x2] = 0xAB; // same value as the fixture
 
     vm.exec(instruction);
 
@@ -211,7 +211,7 @@ fn vm_executes_skip_on_not_equal_byte_instruction_with_diff_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAF; // different value as the fixture
+    vm.registers[0x2] = 0xAF; // different value as the fixture
 
     vm.exec(instruction);
 
@@ -225,8 +225,8 @@ fn vm_executes_skip_on_equal_instruction_with_equal_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAB;
-    vm.registers[8] = 0xAB;
+    vm.registers[0x2] = 0xAB;
+    vm.registers[0x8] = 0xAB;
 
     vm.exec(instruction);
 
@@ -240,8 +240,8 @@ fn vm_executes_skip_on_equal_instruction_with_diff_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAF;
-    vm.registers[8] = 0x12;
+    vm.registers[0x2] = 0xAF;
+    vm.registers[0x8] = 0x12;
 
     vm.exec(instruction);
 
@@ -255,8 +255,8 @@ fn vm_executes_skip_on_not_equal_instruction_with_equal_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAB;
-    vm.registers[8] = 0xAB;
+    vm.registers[0x2] = 0xAB;
+    vm.registers[0x8] = 0xAB;
 
     vm.exec(instruction);
 
@@ -270,8 +270,8 @@ fn vm_executes_skip_on_not_equal_instruction_with_diff_values() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0xAF;
-    vm.registers[8] = 0x12;
+    vm.registers[0x2] = 0xAF;
+    vm.registers[0x8] = 0x12;
 
     vm.exec(instruction);
 
@@ -287,7 +287,7 @@ fn vm_executes_set_byte_instruction() {
 
     vm.exec(instruction);
 
-    assert_eq!(0xAB, vm.registers[2]);
+    assert_eq!(0xAB, vm.registers[0x2]);
 }
 
 #[test]
@@ -297,11 +297,11 @@ fn vm_executes_add_byte_instruction() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x11;
+    vm.registers[0x2] = 0x11;
 
     vm.exec(instruction);
 
-    assert_eq!(0x22, vm.registers[2]);
+    assert_eq!(0x22, vm.registers[0x2]);
 }
 
 #[test]
@@ -311,12 +311,12 @@ fn vm_executes_set_instruction() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x11;
-    vm.registers[1] = 0xAB;
+    vm.registers[0x2] = 0x11;
+    vm.registers[0x1] = 0xAB;
 
     vm.exec(instruction);
 
-    assert_eq!(0xAB, vm.registers[2]);
+    assert_eq!(0xAB, vm.registers[0x2]);
 }
 
 #[test]
@@ -326,12 +326,12 @@ fn vm_executes_or_instruction() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x11; // Vx
-    vm.registers[1] = 0xAB; // Vy
+    vm.registers[0x2] = 0x11; // Vx
+    vm.registers[0x1] = 0xAB; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xBB, vm.registers[2]);
+    assert_eq!(0xBB, vm.registers[0x2]);
 }
 
 #[test]
@@ -341,12 +341,12 @@ fn vm_executes_and_instruction() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x11; // Vx
-    vm.registers[1] = 0xAB; // Vy
+    vm.registers[0x2] = 0x11; // Vx
+    vm.registers[0x1] = 0xAB; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0x01, vm.registers[2]);
+    assert_eq!(0x01, vm.registers[0x2]);
 }
 
 #[test]
@@ -356,12 +356,12 @@ fn vm_executes_xor_instruction() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x11; // Vx
-    vm.registers[1] = 0xAB; // Vy
+    vm.registers[0x2] = 0x11; // Vx
+    vm.registers[0x1] = 0xAB; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xBA, vm.registers[2]);
+    assert_eq!(0xBA, vm.registers[0x2]);
 }
 
 #[test]
@@ -371,13 +371,13 @@ fn vm_executes_add_instruction_with_carry() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x83; // Vx
-    vm.registers[1] = 0x7D; // Vy
+    vm.registers[0x2] = 0x83; // Vx
+    vm.registers[0x1] = 0x7D; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0x0, vm.registers[2]);
-    assert_eq!(0x1, vm.registers[9]);
+    assert_eq!(0x0, vm.registers[0x2]);
+    assert_eq!(0x1, vm.registers[0xF]);
 }
 
 #[test]
@@ -387,13 +387,13 @@ fn vm_executes_add_instruction_without_carry() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x82; // Vx
-    vm.registers[1] = 0x7D; // Vy
+    vm.registers[0x2] = 0x82; // Vx
+    vm.registers[0x1] = 0x7D; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xFF, vm.registers[2]);
-    assert_eq!(0x0, vm.registers[9]);
+    assert_eq!(0xFF, vm.registers[0x2]);
+    assert_eq!(0x0, vm.registers[0xF]);
 }
 
 #[test]
@@ -403,13 +403,13 @@ fn vm_executes_sub_x_y_instruction_with_borrow() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x7D; // Vx
-    vm.registers[1] = 0x82; // Vy
+    vm.registers[0x2] = 0x7D; // Vx
+    vm.registers[0x1] = 0x82; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xFB, vm.registers[2]);
-    assert_eq!(0x0, vm.registers[9]);
+    assert_eq!(0xFB, vm.registers[0x2]);
+    assert_eq!(0x0, vm.registers[0xF]);
 }
 
 #[test]
@@ -419,13 +419,13 @@ fn vm_executes_sub_x_y_instruction_without_borrow() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x82; // Vx
-    vm.registers[1] = 0x7D; // Vy
+    vm.registers[0x2] = 0x82; // Vx
+    vm.registers[0x1] = 0x7D; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0x5, vm.registers[2]);
-    assert_eq!(0x1, vm.registers[9]);
+    assert_eq!(0x5, vm.registers[0x2]);
+    assert_eq!(0x1, vm.registers[0xF]);
 }
 
 #[test]
@@ -435,13 +435,13 @@ fn vm_executes_sub_y_x_instruction_with_borrow() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x82; // Vx
-    vm.registers[1] = 0x7D; // Vy
+    vm.registers[0x2] = 0x82; // Vx
+    vm.registers[0x1] = 0x7D; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xFB, vm.registers[2]);
-    assert_eq!(0x0, vm.registers[9]);
+    assert_eq!(0xFB, vm.registers[0x2]);
+    assert_eq!(0x0, vm.registers[0xF]);
 }
 
 #[test]
@@ -451,13 +451,13 @@ fn vm_executes_sub_y_x_instruction_without_borrow() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x7D; // Vx
-    vm.registers[1] = 0x82; // Vy
+    vm.registers[0x2] = 0x7D; // Vx
+    vm.registers[0x1] = 0x82; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0x5, vm.registers[2]);
-    assert_eq!(0x1, vm.registers[9]);
+    assert_eq!(0x5, vm.registers[0x2]);
+    assert_eq!(0x1, vm.registers[0xF]);
 }
 
 #[test]
@@ -467,13 +467,13 @@ fn vm_executes_shift_right_instruction_with_carry() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x7D; // Vx
-    vm.registers[1] = 0xFF; // Vy
+    vm.registers[0x2] = 0x7D; // Vx
+    vm.registers[0x1] = 0xFF; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0x7F, vm.registers[2]);
-    assert_eq!(0x1, vm.registers[9]);
+    assert_eq!(0x7F, vm.registers[0x2]);
+    assert_eq!(0x1, vm.registers[0xF]);
 }
 
 #[test]
@@ -483,13 +483,13 @@ fn vm_executes_shift_right_instruction_without_carry() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x7D; // Vx
-    vm.registers[1] = 0xFE; // Vy
+    vm.registers[0x2] = 0x7D; // Vx
+    vm.registers[0x1] = 0xFE; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0x7F, vm.registers[2]);
-    assert_eq!(0x0, vm.registers[9]);
+    assert_eq!(0x7F, vm.registers[0x2]);
+    assert_eq!(0x0, vm.registers[0xF]);
 }
 
 #[test]
@@ -499,13 +499,13 @@ fn vm_executes_shift_left_instruction_with_carry() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x7D; // Vx
-    vm.registers[1] = 0xFF; // Vy
+    vm.registers[0x2] = 0x7D; // Vx
+    vm.registers[0x1] = 0xFF; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xFE, vm.registers[2]);
-    assert_eq!(0x1, vm.registers[9]);
+    assert_eq!(0xFE, vm.registers[0x2]);
+    assert_eq!(0x1, vm.registers[0xF]);
 }
 
 #[test]
@@ -515,13 +515,13 @@ fn vm_executes_shift_left_instruction_without_carry() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[2] = 0x7D; // Vx
-    vm.registers[1] = 0x7F; // Vy
+    vm.registers[0x2] = 0x7D; // Vx
+    vm.registers[0x1] = 0x7F; // Vy
 
     vm.exec(instruction);
 
-    assert_eq!(0xFE, vm.registers[2]);
-    assert_eq!(0x0, vm.registers[9]);
+    assert_eq!(0xFE, vm.registers[0x2]);
+    assert_eq!(0x0, vm.registers[0xF]);
 }
 
 #[test]
@@ -545,7 +545,7 @@ fn vm_executes_jump_plus_instruction() {
     let mut vm: VM = Default::default();
     vm.boot();
 
-    vm.registers[0] = 0x1E;
+    vm.registers[0x0] = 0x1E;
 
     vm.exec(instruction);
 

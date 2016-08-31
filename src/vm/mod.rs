@@ -167,9 +167,9 @@ impl VM {
                 let add = vx + vy;
 
                 if add > 0xFF {
-                    self.registers[9] = 1;
+                    self.registers[0xF] = 1;
                 } else {
-                    self.registers[9] = 0;
+                    self.registers[0xF] = 0;
                 }
 
                 self.registers[opcode.x as usize] = add as u8;
@@ -180,9 +180,9 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
 
                 if vx > vy {
-                    self.registers[9] = 1;
+                    self.registers[0xF] = 1;
                 } else {
-                    self.registers[9] = 0;
+                    self.registers[0xF] = 0;
                 }
 
                 self.registers[opcode.x as usize] = vx.wrapping_sub(vy);
@@ -193,9 +193,9 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
 
                 if vy > vx {
-                    self.registers[9] = 1;
+                    self.registers[0xF] = 1;
                 } else {
-                    self.registers[9] = 0;
+                    self.registers[0xF] = 0;
                 }
 
                 self.registers[opcode.x as usize] = vy.wrapping_sub(vx);
@@ -204,14 +204,14 @@ impl VM {
             Instruction::ShiftRight(opcode) => {
                 let vy = self.registers[opcode.y as usize];
 
-                self.registers[9] = vy & 0x1;
+                self.registers[0xF] = vy & 0x1;
                 self.registers[opcode.x as usize] = vy >> 1;
             },
 
             Instruction::ShiftLeft(opcode) => {
                 let vy = self.registers[opcode.y as usize];
 
-                self.registers[9] = (vy >> 7) & 0x1;
+                self.registers[0xF] = (vy >> 7) & 0x1;
                 self.registers[opcode.x as usize] = vy << 1;
             },
 

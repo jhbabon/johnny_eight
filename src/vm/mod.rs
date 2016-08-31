@@ -237,6 +237,22 @@ impl VM {
                 // TODO
             },
 
+            Instruction::SkipOnKeyPressed(opcode) => {
+                let key = self.registers[opcode.x as usize] as usize;
+
+                if self.keypad[key] == 1 {
+                    self.pc += 2;
+                };
+            },
+
+            Instruction::SkipOnKeyNotPressed(opcode) => {
+                let key = self.registers[opcode.x as usize] as usize;
+
+                if self.keypad[key] == 0 {
+                    self.pc += 2;
+                };
+            },
+
             _ => {}
         }
     }

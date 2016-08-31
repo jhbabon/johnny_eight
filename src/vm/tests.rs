@@ -590,3 +590,63 @@ fn vm_executes_random_mask_instruction() {
 
 //     assert_eq!(expected, vm.gfx);
 // }
+
+#[test]
+fn vm_executes_skip_on_key_pressed_instruction_when_key_is_pressed() {
+    let instruction = Instruction::decode(0xEA9E).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0xF; // We look for key F
+    vm.keypad[0xF] = 1;      // key F is pressed
+
+    vm.exec(instruction);
+
+    assert_eq!(0x0002, vm.pc);
+}
+
+#[test]
+fn vm_executes_skip_on_key_pressed_instruction_when_key_is_not_pressed() {
+    let instruction = Instruction::decode(0xEA9E).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0xF; // We look for key F
+    vm.keypad[0xF] = 0;      // key F is not pressed
+
+    vm.exec(instruction);
+
+    assert_eq!(0x0000, vm.pc);
+}
+
+#[test]
+fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_pressed() {
+    let instruction = Instruction::decode(0xEAA1).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0xF; // We look for key F
+    vm.keypad[0xF] = 1;      // key F is pressed
+
+    vm.exec(instruction);
+
+    assert_eq!(0x0000, vm.pc);
+}
+
+#[test]
+fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_not_pressed() {
+    let instruction = Instruction::decode(0xEAA1).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0xF; // We look for key F
+    vm.keypad[0xF] = 0;      // key F is not pressed
+
+    vm.exec(instruction);
+
+    assert_eq!(0x0002, vm.pc);
+}

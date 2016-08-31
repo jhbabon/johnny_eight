@@ -1,0 +1,22 @@
+[package]
+name = "chip_8"
+version = "0.1.0"
+authors = ["Juan Hernández <juan.hernandez.babon@gmail.com>"]
+description = "CHIP-8 emulator"
+homepage = "https://github.com/jhbabon/chip_8"
+repository = "https://github.com/jhbabon/chip_8"
+readme = "README.md"
+keywords = ["chip_8", "chip-8", "emulator"]
+license = "MIT"
+
+[lib]
+name = "chip_8"
+path = "src/lib.rs"
+
+# TODO
+# [[bin]]
+# name = "chip_8"
+# path = "src/bin.rs"
+# doc = false
+
+[dependencies]

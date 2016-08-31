@@ -3,6 +3,7 @@
 // TODO: Use constants in tests
 // TODO: Use consistent indexes with hex values.
 
+use rand::{thread_rng, Rng};
 use instructions::Instruction;
 use std::io::{Write, BufWriter};
 
@@ -212,6 +213,24 @@ impl VM {
 
                 self.registers[9] = (vy >> 7) & 0x1;
                 self.registers[opcode.x as usize] = vy << 1;
+            },
+
+            Instruction::SetI(opcode) => {
+                self.i = opcode.address;
+            },
+
+            Instruction::JumpPlus(opcode) => {
+                let v0 = self.registers[0] as u16;
+
+                self.pc = v0 + opcode.address;
+            },
+
+            Instruction::RandomMask(opcode) => {
+                let mut rng = thread_rng();
+                let rnd: u16 = rng.gen_range(0, 256);
+                let rnd: u8 = rnd as u8;
+
+                self.registers[opcode.x as usize] = rnd & opcode.data;
             },
 
             _ => {}

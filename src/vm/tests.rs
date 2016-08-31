@@ -523,3 +523,47 @@ fn vm_executes_shift_left_instruction_without_carry() {
     assert_eq!(0xFE, vm.registers[2]);
     assert_eq!(0x0, vm.registers[9]);
 }
+
+#[test]
+fn vm_executes_set_i_instruction() {
+    let instruction = Instruction::decode(0xA21E).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.i = 0x007D;
+
+    vm.exec(instruction);
+
+    assert_eq!(0x021E, vm.i);
+}
+
+#[test]
+fn vm_executes_jump_plus_instruction() {
+    let instruction = Instruction::decode(0xBABC).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0] = 0x1E;
+
+    vm.exec(instruction);
+
+    let expected = 0x0ABC + 0x001E;
+
+    assert_eq!(expected, vm.pc);
+}
+
+#[test]
+fn vm_executes_random_mask_instruction() {
+    let instruction = Instruction::decode(0xCABC).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0x1E;
+
+    vm.exec(instruction);
+
+    assert!(vm.registers[0xA] != 0x1E);
+}

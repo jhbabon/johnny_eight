@@ -20,3 +20,4 @@ path = "src/lib.rs"
 # doc = false
 
 [dependencies]
+rand = "0.3.14"

@@ -1,4 +1,5 @@
 // Trying to emulate a chip-8 computer!
+extern crate rand;
 
 pub mod vm;
 pub mod instructions;

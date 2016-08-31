@@ -730,3 +730,31 @@ fn vm_executes_set_sound_timer_instruction() {
     assert_eq!(0xE, vm.st);
     assert_eq!(0x0002, vm.pc);
 }
+
+#[test]
+fn vm_executes_wait_key_instruction_without_any_key_pressed() {
+    let instruction = Instruction::decode(0xFA0A).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.exec(instruction);
+
+    assert_eq!(0x0, vm.registers[0xA]);
+    assert_eq!(0x0, vm.pc); // It doesn't move
+}
+
+#[test]
+fn vm_executes_wait_key_instruction_wit_a_key_pressed() {
+    let instruction = Instruction::decode(0xFA0A).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.keypad[0xB] = 1;
+
+    vm.exec(instruction);
+
+    assert_eq!(0xB, vm.registers[0xA]);
+    assert_eq!(0x0002, vm.pc); // It moves
+}

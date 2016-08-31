@@ -87,6 +87,21 @@ impl VM {
     }
 
     pub fn exec(&mut self, instruction: Instruction) {
+        // TODO: I would move the actual executions
+        // to a runtime module and have something like this
+        //
+        //   Instruction::Jump(opcode) => {
+        //     // self is the VM.
+        //     runtime::clear::exec(self, opcode)
+        //   }
+        //
+        // This can return a Next struct that indicates the next
+        // step:
+        //
+        //   struct Next {
+        //     Advance(steps), // Advance steps
+        //     Noop, // Don't do anything!
+        //   }
         match instruction {
             Instruction::Clear => {
                 for pixel in self.gfx.iter_mut() {
@@ -323,6 +338,15 @@ impl VM {
                 self.st = self.registers[opcode.x as usize];
 
                 self.advance();
+            },
+
+            Instruction::WaitKey(opcode) => {
+                let key = self.keypad.iter().position(|&s| s == 1);
+
+                if let Some(value) = key {
+                    self.registers[opcode.x as usize] = value as u8;
+                    self.advance();
+                }
             },
 
             _ => {}

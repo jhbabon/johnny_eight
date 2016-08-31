@@ -567,3 +567,26 @@ fn vm_executes_random_mask_instruction() {
 
     assert!(vm.registers[0xA] != 0x1E);
 }
+
+// #[test]
+// TODO
+// fn vm_executes_draw_instruction() {
+//     let instruction = Instruction::decode(0xD123).unwrap();
+
+//     let mut vm: VM = Default::default();
+//     vm.boot();
+
+//     vm.registers[0x1] = 0x1;
+//     vm.registers[0x2] = 0x2;
+//     vm.i = 0x1;
+//     vm.ram[0x1] = 0xFF;
+//     vm.ram[0x2] = 0xFF;
+//     vm.ram[0x3] = 0xFF;
+
+//     vm.exec(instruction);
+//
+//     // TODO: What is expected?
+//     let mut expected: [u8; (64 * 32)] = [0; (64 * 32)];
+
+//     assert_eq!(expected, vm.gfx);
+// }

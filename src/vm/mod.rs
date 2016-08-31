@@ -233,6 +233,10 @@ impl VM {
                 self.registers[opcode.x as usize] = rnd & opcode.data;
             },
 
+            Instruction::Draw(_) => {
+                // TODO
+            },
+
             _ => {}
         }
     }

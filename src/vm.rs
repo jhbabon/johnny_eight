@@ -60,6 +60,12 @@ pub struct VM {
 
 impl VM {
     // Fill the VM with all the information it needs, like fonts registers.
+    // TODO: Move all the default and boot process to a Boot struct
+    // following the builder pattern
+    //
+    // E.g:
+    //
+    //   let mut vm = Boot.new().init_fonts().finish();
     pub fn boot(&mut self) {
         let size = FONTS_ADDR..(FONTS_ADDR + FONTS_SIZE);
         let mut buffer = BufWriter::new(&mut self.ram[size]);
@@ -184,6 +190,20 @@ impl VM {
                 }
 
                 self.registers[opcode.x as usize] = vy.wrapping_sub(vx);
+            },
+
+            Instruction::ShiftRight(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+
+                self.registers[9] = vy & 0x1;
+                self.registers[opcode.x as usize] = vy >> 1;
+            },
+
+            Instruction::ShiftLeft(opcode) => {
+                let vy = self.registers[opcode.y as usize];
+
+                self.registers[9] = (vy >> 7) & 0x1;
+                self.registers[opcode.x as usize] = vy << 1;
             },
 
             _ => {}
@@ -639,5 +659,69 @@ mod tests {
 
         assert_eq!(0x5, vm.registers[2]);
         assert_eq!(0x1, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_shift_right_instruction_with_carry() {
+        let instruction = Instruction::decode(0x8216).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x7D; // Vx
+        vm.registers[1] = 0xFF; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0x7F, vm.registers[2]);
+        assert_eq!(0x1, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_shift_right_instruction_without_carry() {
+        let instruction = Instruction::decode(0x8216).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x7D; // Vx
+        vm.registers[1] = 0xFE; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0x7F, vm.registers[2]);
+        assert_eq!(0x0, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_shift_left_instruction_with_carry() {
+        let instruction = Instruction::decode(0x821E).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x7D; // Vx
+        vm.registers[1] = 0xFF; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xFE, vm.registers[2]);
+        assert_eq!(0x1, vm.registers[9]);
+    }
+
+    #[test]
+    fn vm_executes_shift_left_instruction_without_carry() {
+        let instruction = Instruction::decode(0x821E).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0x7D; // Vx
+        vm.registers[1] = 0x7F; // Vy
+
+        vm.exec(instruction);
+
+        assert_eq!(0xFE, vm.registers[2]);
+        assert_eq!(0x0, vm.registers[9]);
     }
 }

@@ -253,6 +253,18 @@ impl VM {
                 };
             },
 
+            Instruction::StoreDelayTimer(opcode) => {
+                self.registers[opcode.x as usize] = self.dt;
+            },
+
+            Instruction::SetDelayTimer(opcode) => {
+                self.dt = self.registers[opcode.x as usize];
+            },
+
+            Instruction::SetSoundTimer(opcode) => {
+                self.st = self.registers[opcode.x as usize];
+            },
+
             _ => {}
         }
     }

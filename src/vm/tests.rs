@@ -650,3 +650,45 @@ fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_not_pressed() {
 
     assert_eq!(0x0002, vm.pc);
 }
+
+#[test]
+fn vm_executes_store_delay_timer_instruction() {
+    let instruction = Instruction::decode(0xFA07).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.dt = 0xE;
+
+    vm.exec(instruction);
+
+    assert_eq!(0xE, vm.registers[0xA]);
+}
+
+#[test]
+fn vm_executes_set_delay_timer_instruction() {
+    let instruction = Instruction::decode(0xFA15).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0xE;
+
+    vm.exec(instruction);
+
+    assert_eq!(0xE, vm.dt);
+}
+
+#[test]
+fn vm_executes_set_sound_timer_instruction() {
+    let instruction = Instruction::decode(0xFA18).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0xE;
+
+    vm.exec(instruction);
+
+    assert_eq!(0xE, vm.st);
+}

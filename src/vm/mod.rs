@@ -50,7 +50,7 @@ pub struct VM {
     keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
     gfx: [u8; DISPLAY_PIXELS],               // Graphics "card"
 
-    i: u16,                                  // Store memory addresses
+    i: usize,                                // Store memory addresses
 
     dt: u8,                                  // Delay Timer register
     st: u8,                                  // Sound Timer register
@@ -275,7 +275,7 @@ impl VM {
             },
 
             Instruction::SetI(opcode) => {
-                self.i = opcode.address;
+                self.i = opcode.address as usize;
 
                 self.advance();
             },
@@ -349,7 +349,53 @@ impl VM {
                 }
             },
 
-            _ => {}
+            Instruction::AddI(opcode) => {
+                let vx = self.registers[opcode.x as usize] as u16;
+                self.i += vx as usize;
+
+                self.advance();
+            },
+
+            Instruction::SetFont(_) => {
+                // TODO
+
+                self.advance();
+            },
+
+            Instruction::Bcd(opcode) => {
+                // TODO: Clean up
+                let vx = self.registers[opcode.x as usize];
+
+                let b = vx / 100;
+                let c = (vx - (b * 100)) / 10;
+                let d = vx - (b * 100) - (c * 10);
+
+                self.ram[self.i]       = b as u8;
+                self.ram[(self.i + 1)] = c as u8;
+                self.ram[(self.i + 2)] = d as u8;
+
+                self.advance();
+            },
+
+            Instruction::Store(opcode) => {
+                let mut pointer = self.i;
+
+                for v in 0..opcode.x {
+                    self.ram[pointer] = self.registers[v as usize];
+                    pointer += 1;
+                }
+
+                self.advance();
+            }
+
+            Instruction::Read(opcode) => {
+                for v in 0..opcode.x {
+                    let pointer = self.i + v as usize;
+                    self.registers[v as usize] = self.ram[pointer];
+                }
+
+                self.advance();
+            }
         }
     }
 }

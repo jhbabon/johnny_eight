@@ -21,7 +21,7 @@ fn vm_has_16_general_purpose_registers() {
 fn vm_has_the_i_register() {
     let vm: VM = Default::default();
 
-    assert_eq!(0 as u16, vm.i);
+    assert_eq!(0 as usize, vm.i);
 }
 
 #[test]
@@ -745,7 +745,7 @@ fn vm_executes_wait_key_instruction_without_any_key_pressed() {
 }
 
 #[test]
-fn vm_executes_wait_key_instruction_wit_a_key_pressed() {
+fn vm_executes_wait_key_instruction_with_a_key_pressed() {
     let instruction = Instruction::decode(0xFA0A).unwrap();
 
     let mut vm: VM = Default::default();
@@ -757,4 +757,98 @@ fn vm_executes_wait_key_instruction_wit_a_key_pressed() {
 
     assert_eq!(0xB, vm.registers[0xA]);
     assert_eq!(0x0002, vm.pc); // It moves
+}
+
+#[test]
+fn vm_executes_add_i_instruction() {
+    let instruction = Instruction::decode(0xFA1E).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.i = 0x1;
+    vm.registers[0xA] = 0x1;
+
+    vm.exec(instruction);
+
+    assert_eq!(0x2, vm.i);
+    assert_eq!(0x0002, vm.pc);
+}
+
+#[test]
+#[ignore]
+fn vm_executes_set_font_instruction() {
+    let instruction = Instruction::decode(0xFA29).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.registers[0xA] = 0x1;
+
+    vm.exec(instruction);
+
+    // TODO: Test I properly
+    // assert_eq!(0x2, vm.i);
+    assert_eq!(0x0002, vm.pc);
+}
+
+#[test]
+fn vm_executes_bcd_instruction() {
+    let instruction = Instruction::decode(0xFA33).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.i = 0x0FF0;
+    vm.registers[0xA] = 254;
+
+    vm.exec(instruction);
+
+    assert_eq!(2, vm.ram[0xFF0]);
+    assert_eq!(5, vm.ram[0xFF1]);
+    assert_eq!(4, vm.ram[0xFF2]);
+    assert_eq!(0x0002, vm.pc);
+}
+
+#[test]
+fn vm_executes_store_instruction() {
+    let instruction = Instruction::decode(0xFE55).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.i = 0x0F00;
+
+    for i in 0x0..0xE {
+        vm.registers[i] = 0xA;
+    }
+
+    vm.exec(instruction);
+
+    for i in 0x0..0xE {
+        let index = (0x0F00 + i) as usize;
+        assert_eq!(0xA, vm.ram[index]);
+    }
+    assert_eq!(0x0002, vm.pc);
+}
+
+#[test]
+fn vm_executes_read_instruction() {
+    let instruction = Instruction::decode(0xFE65).unwrap();
+
+    let mut vm: VM = Default::default();
+    vm.boot();
+
+    vm.i = 0x0F00;
+
+    for i in 0x0..0xE {
+        vm.ram[0x0F00 + i] = 0xA;
+    }
+
+    vm.exec(instruction);
+
+    for i in 0x0..0xE {
+        assert_eq!(0xA, vm.registers[i as usize]);
+    }
+    assert_eq!(0x0002, vm.pc);
 }

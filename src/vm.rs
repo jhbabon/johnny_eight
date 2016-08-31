@@ -118,6 +118,14 @@ impl VM {
                 };
             },
 
+            Instruction::SkipOnNotEqual(opcode) => {
+                let vx = self.registers[opcode.x as usize];
+                let vy = self.registers[opcode.y as usize];
+                if vx != vy {
+                    self.pc += 2;
+                };
+            },
+
             Instruction::SetByte(opcode) => {
                 self.registers[opcode.x as usize] = opcode.data;
             },
@@ -477,6 +485,36 @@ mod tests {
         vm.exec(instruction);
 
         assert_eq!(0x0000, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_not_equal_instruction_with_equal_values() {
+        let instruction = Instruction::decode(0x9280).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAB;
+        vm.registers[8] = 0xAB;
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0000, vm.pc);
+    }
+
+    #[test]
+    fn vm_executes_skip_on_not_equal_instruction_with_diff_values() {
+        let instruction = Instruction::decode(0x9280).unwrap();
+
+        let mut vm: VM = Default::default();
+        vm.boot();
+
+        vm.registers[2] = 0xAF;
+        vm.registers[8] = 0x12;
+
+        vm.exec(instruction);
+
+        assert_eq!(0x0002, vm.pc);
     }
 
     #[test]

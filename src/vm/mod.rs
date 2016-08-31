@@ -55,7 +55,7 @@ pub struct VM {
     dt: u8,                                  // Delay Timer register
     st: u8,                                  // Sound Timer register
 
-    pc: u16,                                 // Program Counter
+    pc: usize,                               // Program Counter
     sp: usize,                               // Stack Pointer
 }
 
@@ -74,40 +74,58 @@ impl VM {
         buffer.write_all(&FONTS).unwrap();
     }
 
+    pub fn advance(&mut self) {
+        // We move the PC by two because we need to read
+        // two bytes in each cycle.
+        self.pc += 2;
+    }
+
+    pub fn advance_by(&mut self, times: u16) {
+        for _ in 0..times {
+            self.advance();
+        };
+    }
+
     pub fn exec(&mut self, instruction: Instruction) {
         match instruction {
             Instruction::Clear => {
                 for pixel in self.gfx.iter_mut() {
                     *pixel = 0;
                 }
+
+                self.advance();
             },
 
             Instruction::Return => {
-                self.pc = self.stack[self.sp];
+                self.pc = self.stack[self.sp] as usize;
                 self.sp -= 1;
             },
 
             Instruction::Jump(opcode) => {
-                self.pc = opcode.address;
+                self.pc = opcode.address as usize;
             },
 
             Instruction::Call(opcode) => {
                 self.sp += 1;
-                self.stack[self.sp] = self.pc;
-                self.pc = opcode.address;
+                self.stack[self.sp] = self.pc as u16;
+                self.pc = opcode.address as usize;
             },
 
             Instruction::SkipOnEqualByte(opcode) => {
                 let vx = self.registers[opcode.x as usize];
                 if vx == opcode.data {
-                    self.pc += 2;
+                    self.advance_by(2);
+                } else {
+                    self.advance();
                 };
             },
 
             Instruction::SkipOnNotEqualByte(opcode) => {
                 let vx = self.registers[opcode.x as usize];
                 if vx != opcode.data {
-                    self.pc += 2;
+                    self.advance_by(2);
+                } else {
+                    self.advance();
                 };
             },
 
@@ -115,7 +133,9 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
                 let vy = self.registers[opcode.y as usize];
                 if vx == vy {
-                    self.pc += 2;
+                    self.advance_by(2);
+                } else {
+                    self.advance();
                 };
             },
 
@@ -123,21 +143,29 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
                 let vy = self.registers[opcode.y as usize];
                 if vx != vy {
-                    self.pc += 2;
+                    self.advance_by(2);
+                } else {
+                    self.advance();
                 };
             },
 
             Instruction::SetByte(opcode) => {
                 self.registers[opcode.x as usize] = opcode.data;
+
+                self.advance();
             },
 
             Instruction::AddByte(opcode) => {
                 self.registers[opcode.x as usize] += opcode.data;
+
+                self.advance();
             },
 
             Instruction::Set(opcode) => {
                 let vy = self.registers[opcode.y as usize];
                 self.registers[opcode.x as usize] = vy;
+
+                self.advance();
             },
 
             Instruction::Or(opcode) => {
@@ -145,6 +173,8 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
 
                 self.registers[opcode.x as usize] = vx | vy;
+
+                self.advance();
             },
 
             Instruction::And(opcode) => {
@@ -152,6 +182,8 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
 
                 self.registers[opcode.x as usize] = vx & vy;
+
+                self.advance();
             },
 
             Instruction::Xor(opcode) => {
@@ -159,6 +191,8 @@ impl VM {
                 let vx = self.registers[opcode.x as usize];
 
                 self.registers[opcode.x as usize] = vx ^ vy;
+
+                self.advance();
             },
 
             Instruction::Add(opcode) => {
@@ -173,6 +207,8 @@ impl VM {
                 }
 
                 self.registers[opcode.x as usize] = add as u8;
+
+                self.advance();
             },
 
             Instruction::SubXY(opcode) => {
@@ -186,6 +222,8 @@ impl VM {
                 }
 
                 self.registers[opcode.x as usize] = vx.wrapping_sub(vy);
+
+                self.advance();
             },
 
             Instruction::SubYX(opcode) => {
@@ -199,6 +237,8 @@ impl VM {
                 }
 
                 self.registers[opcode.x as usize] = vy.wrapping_sub(vx);
+
+                self.advance();
             },
 
             Instruction::ShiftRight(opcode) => {
@@ -206,6 +246,8 @@ impl VM {
 
                 self.registers[0xF] = vy & 0x1;
                 self.registers[opcode.x as usize] = vy >> 1;
+
+                self.advance();
             },
 
             Instruction::ShiftLeft(opcode) => {
@@ -213,16 +255,20 @@ impl VM {
 
                 self.registers[0xF] = (vy >> 7) & 0x1;
                 self.registers[opcode.x as usize] = vy << 1;
+
+                self.advance();
             },
 
             Instruction::SetI(opcode) => {
                 self.i = opcode.address;
+
+                self.advance();
             },
 
             Instruction::JumpPlus(opcode) => {
                 let v0 = self.registers[0] as u16;
 
-                self.pc = v0 + opcode.address;
+                self.pc = (v0 + opcode.address) as usize;
             },
 
             Instruction::RandomMask(opcode) => {
@@ -231,17 +277,23 @@ impl VM {
                 let rnd: u8 = rnd as u8;
 
                 self.registers[opcode.x as usize] = rnd & opcode.data;
+
+                self.advance();
             },
 
             Instruction::Draw(_) => {
                 // TODO
+
+                self.advance();
             },
 
             Instruction::SkipOnKeyPressed(opcode) => {
                 let key = self.registers[opcode.x as usize] as usize;
 
                 if self.keypad[key] == 1 {
-                    self.pc += 2;
+                    self.advance_by(2);
+                } else {
+                    self.advance();
                 };
             },
 
@@ -249,20 +301,28 @@ impl VM {
                 let key = self.registers[opcode.x as usize] as usize;
 
                 if self.keypad[key] == 0 {
-                    self.pc += 2;
+                    self.advance_by(2);
+                } else {
+                    self.advance();
                 };
             },
 
             Instruction::StoreDelayTimer(opcode) => {
                 self.registers[opcode.x as usize] = self.dt;
+
+                self.advance();
             },
 
             Instruction::SetDelayTimer(opcode) => {
                 self.dt = self.registers[opcode.x as usize];
+
+                self.advance();
             },
 
             Instruction::SetSoundTimer(opcode) => {
                 self.st = self.registers[opcode.x as usize];
+
+                self.advance();
             },
 
             _ => {}

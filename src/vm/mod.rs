@@ -311,8 +311,9 @@ impl VM {
                 self.advance();
             },
 
-            Instruction::SetFont(_) => {
-                // TODO
+            Instruction::SetSprite(opcode) => {
+                let vx = self.registers[opcode.x as usize] as usize;
+                self.i = SPRITES_ADDR + vx * SPRITE_HEIGHT;
 
                 self.advance();
             },

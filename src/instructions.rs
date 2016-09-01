@@ -109,7 +109,7 @@ pub enum Instruction {
     // ADD I, Vx; Set I = I + Vx
     AddI(Opcode),
     // LD F, Vx; Set I = location of sprite for digit Vx
-    SetFont(Opcode),
+    SetSprite(Opcode),
     // LD B, Vx; Store BCD representation of Vx
     // in memory locations I, I+1, and I+2.
     Bcd(Opcode),
@@ -161,7 +161,7 @@ impl Instruction {
             Opcode { id: 0xF, y: 0x1, nibble: 0x5, .. } => Some(Instruction::SetDelayTimer(opcode)),
             Opcode { id: 0xF, y: 0x1, nibble: 0x8, .. } => Some(Instruction::SetSoundTimer(opcode)),
             Opcode { id: 0xF, y: 0x1, nibble: 0xE, .. } => Some(Instruction::AddI(opcode)),
-            Opcode { id: 0xF, y: 0x2, nibble: 0x9, .. } => Some(Instruction::SetFont(opcode)),
+            Opcode { id: 0xF, y: 0x2, nibble: 0x9, .. } => Some(Instruction::SetSprite(opcode)),
             Opcode { id: 0xF, y: 0x3, nibble: 0x3, .. } => Some(Instruction::Bcd(opcode)),
             Opcode { id: 0xF, y: 0x5, nibble: 0x5, .. } => Some(Instruction::Store(opcode)),
             Opcode { id: 0xF, y: 0x6, nibble: 0x5, .. } => Some(Instruction::Read(opcode)),
@@ -519,7 +519,7 @@ mod tests {
         let instruction = Instruction::decode(bytes).unwrap();
 
         let opcode = Opcode::new(bytes);
-        let expected = Instruction::SetFont(opcode);
+        let expected = Instruction::SetSprite(opcode);
 
         assert_eq!(expected, instruction);
     }

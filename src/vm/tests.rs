@@ -635,18 +635,18 @@ fn vm_executes_add_i_instruction() {
 }
 
 #[test]
-#[ignore]
-fn vm_executes_set_font_instruction() {
+fn vm_executes_set_sprite_instruction() {
     let instruction = Instruction::decode(0xFA29).unwrap();
 
     let mut vm = Bootstrap::new().finish();
 
-    vm.registers[0xA] = 0x1;
+    vm.registers[0xA] = 0xA;
+
+    let expected = SPRITES_ADDR + 0xA * SPRITE_HEIGHT;
 
     vm.exec(instruction);
 
-    // TODO: Test I properly
-    // assert_eq!(0x2, vm.i);
+    assert_eq!(expected, vm.i);
     assert_eq!(0x0002, vm.pc);
 }
 

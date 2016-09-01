@@ -8,12 +8,14 @@ pub struct Bootstrap {
 
 impl Bootstrap {
     pub fn new() -> Bootstrap {
+        println!("Initializing Chip-8 VM");
         Bootstrap {
             ram: [0; RAM_SIZE],
         }
     }
 
     pub fn load_sprites(mut self) -> Bootstrap {
+        println!("Loading stripes into memory");
         let range = SPRITES_ADDR..(SPRITES_ADDR + SPRITES_SIZE);
         for addr in range {
             let index = (addr - SPRITES_ADDR) as usize;
@@ -24,13 +26,16 @@ impl Bootstrap {
     }
 
     pub fn load_rom(mut self, reader: &mut Read) -> Bootstrap {
+        println!("Loading ROM into memory");
         let mut rom = Vec::new();
         if let Err(_) = reader.read_to_end(&mut rom) {
             panic!("Error reading ROM");
         }
 
         let mut addr = PROGRAM_START;
+        println!("ROM contents:");
         for byte in &rom {
+            println!("{:#X}", *byte);
             self.ram[addr] = *byte;
             addr += 1;
         }
@@ -39,6 +44,8 @@ impl Bootstrap {
     }
 
     pub fn finish(self) -> VM {
+        println!("VM Loaded");
+
         VM {
             ram:       self.ram,
             registers: [0; GENERAL_REGISTERS_SIZE],
@@ -60,6 +67,9 @@ mod tests {
     use super::*;
     use vm::specs::*;
     use std::io::Cursor;
+    use std::fs::File;
+    use std::io::BufReader;
+    use std::io::BufRead;
 
     #[test]
     fn bootstrap_loads_an_empty_vm_by_default() {
@@ -109,5 +119,30 @@ mod tests {
         let range = PROGRAM_START..(RAM_SIZE - 10);
 
         assert!(vm.ram[range].iter().all(|&x| x == 0xA));
+    }
+
+    #[test]
+    fn bootstrap_loads_a_rom_from_a_file() {
+        let rom_path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/fixtures/chip_8_picture.rom"
+        );
+        let mut rom = File::open(rom_path).unwrap();
+
+        let vm = Bootstrap::new().load_rom(&mut rom).finish();
+
+        let txt_path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/fixtures/chip_8_picture.txt"
+        );
+        let txt = File::open(txt_path).unwrap();
+        let file = BufReader::new(&txt);
+        let mut index = PROGRAM_START;
+        for line in file.lines() {
+            let l = line.unwrap();
+            let value = format!("{:#X}", vm.ram[index]);
+            index += 1;
+            assert_eq!(l, value);
+        }
     }
 }

@@ -1,10 +1,9 @@
 // Chip-8 Virtual Machine
 
-// TODO: Use constants in tests
 // TODO: Use consistent indexes with hex values.
 
 mod specs;
-mod bootstrap;
+pub mod bootstrap;
 
 use rand::{thread_rng, Rng};
 use instructions::Instruction;

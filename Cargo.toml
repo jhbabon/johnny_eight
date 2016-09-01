@@ -13,11 +13,10 @@ license = "MIT"
 name = "chip_8"
 path = "src/lib.rs"
 
-# TODO
-# [[bin]]
-# name = "chip_8"
-# path = "src/bin.rs"
-# doc = false
+[[bin]]
+name = "chip_8"
+path = "src/bin.rs"
+doc = false
 
 [dependencies]
 rand = "0.3.14"

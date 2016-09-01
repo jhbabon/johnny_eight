@@ -21,3 +21,4 @@ path = "src/lib.rs"
 
 [dependencies]
 rand = "0.3.14"
+# sdl2 = "0.22.0"

@@ -125,7 +125,7 @@ mod tests {
     fn bootstrap_loads_a_rom_from_a_file() {
         let rom_path = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/fixtures/chip_8_picture.rom"
+            "/fixtures/chip_8_logo.rom"
         );
         let mut rom = File::open(rom_path).unwrap();
 
@@ -133,7 +133,7 @@ mod tests {
 
         let txt_path = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/fixtures/chip_8_picture.txt"
+            "/fixtures/chip_8_logo.txt"
         );
         let txt = File::open(txt_path).unwrap();
         let file = BufReader::new(&txt);

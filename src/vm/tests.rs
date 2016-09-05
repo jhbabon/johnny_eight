@@ -1,6 +1,5 @@
 #[cfg(test)]
 
-use vm::*;
 use vm::bootstrap::*;
 use instructions::Instruction;
 use vm::specs::*;
@@ -47,7 +46,7 @@ fn vm_executes_return_instruction() {
 
     vm.exec(instruction);
 
-    assert_eq!(0xA1, vm.pc);
+    assert_eq!(0xA1 + 2, vm.pc);
     assert_eq!(0, vm.sp);
 }
 

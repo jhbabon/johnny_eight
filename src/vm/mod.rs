@@ -15,7 +15,7 @@ pub struct VM {
     pub ram: [u8; RAM_SIZE],                 // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
     stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
-    keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
+    pub keypad: [u8; KEYPAD_SIZE],           // Keep track of any key pressed in the keypad
     pub gfx: [u8; DISPLAY_PIXELS],           // Graphics "card"
 
     i: usize,                                // Store memory addresses
@@ -68,6 +68,8 @@ impl VM {
             Instruction::Return => {
                 self.pc = self.stack[self.sp] as usize;
                 self.sp -= 1;
+
+                self.advance();
             },
 
             Instruction::Jump(opcode) => {
@@ -125,7 +127,8 @@ impl VM {
             },
 
             Instruction::AddByte(opcode) => {
-                self.registers[opcode.x as usize] += opcode.data;
+                let vx = self.registers[opcode.x as usize];
+                self.registers[opcode.x as usize] = vx.wrapping_add(opcode.data);
 
                 self.advance();
             },

@@ -10,7 +10,7 @@ fn vm_advances_the_pc() {
     let mut vm = Bootstrap::new().finish();
     vm.advance();
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -18,7 +18,7 @@ fn vm_advances_the_pc_x_times() {
     let mut vm = Bootstrap::new().finish();
     vm.advance_by(2);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn vm_executes_clear_instruction() {
     vm.exec(instruction);
 
     assert!(vm.gfx.iter().all(|&x| x == 0));
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn vm_executes_skip_on_equal_byte_instruction_with_equal_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -99,7 +99,7 @@ fn vm_executes_skip_on_equal_byte_instruction_with_diff_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -112,7 +112,7 @@ fn vm_executes_skip_on_not_equal_byte_instruction_with_equal_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn vm_executes_skip_on_not_equal_byte_instruction_with_diff_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -139,7 +139,7 @@ fn vm_executes_skip_on_equal_instruction_with_equal_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn vm_executes_skip_on_equal_instruction_with_diff_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -167,7 +167,7 @@ fn vm_executes_skip_on_not_equal_instruction_with_equal_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -181,7 +181,7 @@ fn vm_executes_skip_on_not_equal_instruction_with_diff_values() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -193,7 +193,7 @@ fn vm_executes_set_byte_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xAB, vm.registers[0x2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -207,7 +207,7 @@ fn vm_executes_add_byte_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0x22, vm.registers[0x2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -222,7 +222,7 @@ fn vm_executes_set_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xAB, vm.registers[0x2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -237,7 +237,7 @@ fn vm_executes_or_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xBB, vm.registers[0x2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -252,7 +252,7 @@ fn vm_executes_and_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0x01, vm.registers[0x2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -267,7 +267,7 @@ fn vm_executes_xor_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xBA, vm.registers[0x2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -283,7 +283,7 @@ fn vm_executes_add_instruction_with_carry() {
 
     assert_eq!(0x0, vm.registers[0x2]);
     assert_eq!(0x1, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -299,7 +299,7 @@ fn vm_executes_add_instruction_without_carry() {
 
     assert_eq!(0xFF, vm.registers[0x2]);
     assert_eq!(0x0, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -315,7 +315,7 @@ fn vm_executes_sub_x_y_instruction_with_borrow() {
 
     assert_eq!(0xFB, vm.registers[0x2]);
     assert_eq!(0x0, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -331,7 +331,7 @@ fn vm_executes_sub_x_y_instruction_without_borrow() {
 
     assert_eq!(0x5, vm.registers[0x2]);
     assert_eq!(0x1, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -347,7 +347,7 @@ fn vm_executes_sub_y_x_instruction_with_borrow() {
 
     assert_eq!(0xFB, vm.registers[0x2]);
     assert_eq!(0x0, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -363,7 +363,7 @@ fn vm_executes_sub_y_x_instruction_without_borrow() {
 
     assert_eq!(0x5, vm.registers[0x2]);
     assert_eq!(0x1, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -379,7 +379,7 @@ fn vm_executes_shift_right_instruction_with_carry() {
 
     assert_eq!(0x7F, vm.registers[0x2]);
     assert_eq!(0x1, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -395,7 +395,7 @@ fn vm_executes_shift_right_instruction_without_carry() {
 
     assert_eq!(0x7F, vm.registers[0x2]);
     assert_eq!(0x0, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -411,7 +411,7 @@ fn vm_executes_shift_left_instruction_with_carry() {
 
     assert_eq!(0xFE, vm.registers[0x2]);
     assert_eq!(0x1, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -427,7 +427,7 @@ fn vm_executes_shift_left_instruction_without_carry() {
 
     assert_eq!(0xFE, vm.registers[0x2]);
     assert_eq!(0x0, vm.registers[0xF]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -441,7 +441,7 @@ fn vm_executes_set_i_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0x021E, vm.i);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -470,7 +470,7 @@ fn vm_executes_random_mask_instruction() {
     vm.exec(instruction);
 
     assert!(vm.registers[0xA] != 0x1E);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 // #[test]
@@ -506,7 +506,7 @@ fn vm_executes_skip_on_key_pressed_instruction_when_key_is_pressed() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -520,7 +520,7 @@ fn vm_executes_skip_on_key_pressed_instruction_when_key_is_not_pressed() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -534,7 +534,7 @@ fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_pressed() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -548,7 +548,7 @@ fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_not_pressed() {
 
     vm.exec(instruction);
 
-    assert_eq!(0x0004, vm.pc);
+    assert_eq!(PROGRAM_START + 4, vm.pc);
 }
 
 #[test]
@@ -562,7 +562,7 @@ fn vm_executes_store_delay_timer_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xE, vm.registers[0xA]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -576,7 +576,7 @@ fn vm_executes_set_delay_timer_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xE, vm.dt);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -590,7 +590,7 @@ fn vm_executes_set_sound_timer_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0xE, vm.st);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -602,7 +602,7 @@ fn vm_executes_wait_key_instruction_without_any_key_pressed() {
     vm.exec(instruction);
 
     assert_eq!(0x0, vm.registers[0xA]);
-    assert_eq!(0x0, vm.pc); // It doesn't move
+    assert_eq!(PROGRAM_START, vm.pc); // It doesn't move
 }
 
 #[test]
@@ -616,7 +616,7 @@ fn vm_executes_wait_key_instruction_with_a_key_pressed() {
     vm.exec(instruction);
 
     assert_eq!(0xB, vm.registers[0xA]);
-    assert_eq!(0x0002, vm.pc); // It moves
+    assert_eq!(PROGRAM_START + 2, vm.pc); // It moves
 }
 
 #[test]
@@ -631,7 +631,7 @@ fn vm_executes_add_i_instruction() {
     vm.exec(instruction);
 
     assert_eq!(0x2, vm.i);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -647,7 +647,7 @@ fn vm_executes_set_sprite_instruction() {
     vm.exec(instruction);
 
     assert_eq!(expected, vm.i);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -664,7 +664,7 @@ fn vm_executes_bcd_instruction() {
     assert_eq!(2, vm.ram[0xFF0]);
     assert_eq!(5, vm.ram[0xFF1]);
     assert_eq!(4, vm.ram[0xFF2]);
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -685,7 +685,7 @@ fn vm_executes_store_instruction() {
         let index = (0x0F00 + i) as usize;
         assert_eq!(0xA, vm.ram[index]);
     }
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }
 
 #[test]
@@ -705,5 +705,5 @@ fn vm_executes_read_instruction() {
     for i in 0x0..0xE {
         assert_eq!(0xA, vm.registers[i as usize]);
     }
-    assert_eq!(0x0002, vm.pc);
+    assert_eq!(PROGRAM_START + 2, vm.pc);
 }

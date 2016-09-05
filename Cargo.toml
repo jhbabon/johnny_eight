@@ -20,4 +20,4 @@ doc = false
 
 [dependencies]
 rand = "0.3.14"
-# sdl2 = "0.22.0"
+sdl2 = "0.22.0"

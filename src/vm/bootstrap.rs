@@ -53,11 +53,11 @@ impl Bootstrap {
             keypad:    [0; KEYPAD_SIZE],
             gfx:       [0; DISPLAY_PIXELS],
 
+            pc: PROGRAM_START,
             i:  0,
+            sp: 0,
             dt: 0,
             st: 0,
-            pc: 0,
-            sp: 0,
         }
     }
 }
@@ -81,8 +81,8 @@ mod tests {
         assert_eq!([0 as u8; KEYPAD_SIZE], vm.keypad);
         assert_eq!(DISPLAY_PIXELS, vm.gfx.len());
 
+        assert_eq!(PROGRAM_START, vm.pc);
         assert_eq!(0 as usize, vm.i);
-        assert_eq!(0 as usize, vm.pc);
         assert_eq!(0 as usize, vm.sp);
         assert_eq!(0 as u8, vm.dt);
         assert_eq!(0 as u8, vm.st);

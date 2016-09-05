@@ -2,7 +2,7 @@
 
 // TODO: Use consistent indexes with hex values.
 
-mod specs;
+pub mod specs;
 pub mod bootstrap;
 
 use rand::{thread_rng, Rng};
@@ -13,18 +13,18 @@ use vm::specs::*;
 // TODO: How to print things to the screen/display?
 
 pub struct VM {
-    ram: [u8; RAM_SIZE],                     // Memory
+    pub ram: [u8; RAM_SIZE],                 // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
     stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
     keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
-    gfx: [u8; DISPLAY_PIXELS],               // Graphics "card"
+    pub gfx: [u8; DISPLAY_PIXELS],           // Graphics "card"
 
     i: usize,                                // Store memory addresses
 
     dt: u8,                                  // Delay Timer register
     st: u8,                                  // Sound Timer register
 
-    pc: usize,                               // Program Counter
+    pub pc: usize,                               // Program Counter
     sp: usize,                               // Stack Pointer
 }
 
@@ -251,8 +251,25 @@ impl VM {
                 self.advance();
             },
 
-            Instruction::Draw(_) => {
-                // TODO
+            Instruction::Draw(opcode) => {
+                let x = self.registers[opcode.x as usize] as usize;
+                let y = self.registers[opcode.y as usize] as usize;
+                let i = self.i;
+                let n = opcode.nibble as usize;
+
+                self.registers[0xF] = 0;
+                for (sy, byte) in self.ram[i..i+n].iter().enumerate() {
+                    let dy = (y + sy) % DISPLAY_HEIGHT;
+                    for sx in 0usize..8 {
+                        let px = (*byte >> (7 - sx)) & 0b00000001;
+                        let dx = (x + sx) % DISPLAY_WIDTH;
+                        let idx = dy * DISPLAY_WIDTH + dx;
+                        self.gfx[idx] ^= px;
+
+                        // Vf is if there was a collision
+                        self.registers[0xF] |= (self.gfx[idx] == 0 && px == 1) as u8;
+                    }
+                }
 
                 self.advance();
             },

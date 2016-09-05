@@ -1,10 +1,9 @@
 // Trying to emulate a chip-8 computer!
 extern crate rand;
+extern crate sdl2;
 
 pub mod vm;
 pub mod instructions;
-
-use vm::VM;
 
 /// Returns the version of this crate in the format `MAJOR.MINOR.PATCH`.
 pub fn version() -> &'static str {

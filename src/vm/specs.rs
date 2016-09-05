@@ -27,7 +27,7 @@ pub const SPRITES: [u8; SPRITES_SIZE] = [
 
 pub const KEYPAD_SIZE: usize = 16;
 
-// pub const CLOCK_HZ: f32 = 600.0; // I don't really know why a float is necessary.
+pub const CLOCK: u64 = 16; // Milliseconds: 1000 ms / 60
 
 pub const DISPLAY_WIDTH: usize = 64;
 pub const DISPLAY_HEIGHT: usize = 32;

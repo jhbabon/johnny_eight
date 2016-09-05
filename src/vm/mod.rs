@@ -10,8 +10,7 @@ use instructions::Instruction;
 use std::io::{Write, BufWriter};
 use vm::specs::*;
 
-// TODO: How to print things to the screen/display?
-
+// TODO: Don't make pub attributes, use methods/interface
 pub struct VM {
     pub ram: [u8; RAM_SIZE],                 // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
@@ -21,10 +20,10 @@ pub struct VM {
 
     i: usize,                                // Store memory addresses
 
-    dt: u8,                                  // Delay Timer register
-    st: u8,                                  // Sound Timer register
+    pub dt: u8,                              // Delay Timer register
+    pub st: u8,                              // Sound Timer register
 
-    pub pc: usize,                               // Program Counter
+    pub pc: usize,                           // Program Counter
     sp: usize,                               // Stack Pointer
 }
 

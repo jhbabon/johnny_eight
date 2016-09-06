@@ -279,7 +279,8 @@ impl VM {
             Instruction::SkipOnKeyPressed(opcode) => {
                 let key = self.registers[opcode.x as usize] as usize;
 
-                if self.keypad[key] == 1 {
+                if self.keypad[key] > 0 {
+                    self.keypad[key] -= 1;
                     self.advance_by(2);
                 } else {
                     self.advance();
@@ -292,6 +293,7 @@ impl VM {
                 if self.keypad[key] == 0 {
                     self.advance_by(2);
                 } else {
+                    self.keypad[key] -= 1;
                     self.advance();
                 };
             },
@@ -315,10 +317,10 @@ impl VM {
             },
 
             Instruction::WaitKey(opcode) => {
-                let key = self.keypad.iter().position(|&s| s == 1);
-
+                let key = self.keypad.iter().position(|&s| s > 0);
                 if let Some(value) = key {
                     self.registers[opcode.x as usize] = value as u8;
+                    self.keypad[value] -= 1;
                     self.advance();
                 }
             },

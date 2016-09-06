@@ -88,43 +88,22 @@ fn main() {
                 Event::Quit{..} => break 'event,
                 Event::KeyDown {keycode: Some(keycode), ..} => {
                     match keycode {
-                        Keycode::Num0 => { vm.keypad[0x0] = 1 },
-                        Keycode::Num1 => { vm.keypad[0x1] = 1 },
-                        Keycode::Num2 => { vm.keypad[0x2] = 1 },
-                        Keycode::Num3 => { vm.keypad[0x3] = 1 },
-                        Keycode::Num4 => { vm.keypad[0x4] = 1 },
-                        Keycode::Num5 => { vm.keypad[0x5] = 1 },
-                        Keycode::Num6 => { vm.keypad[0x6] = 1 },
-                        Keycode::Num7 => { vm.keypad[0x7] = 1 },
-                        Keycode::Num8 => { vm.keypad[0x8] = 1 },
-                        Keycode::Num9 => { vm.keypad[0x9] = 1 },
-                        Keycode::A    => { vm.keypad[0xA] = 1 },
-                        Keycode::B    => { vm.keypad[0xB] = 1 },
-                        Keycode::C    => { vm.keypad[0xC] = 1 },
-                        Keycode::D    => { vm.keypad[0xD] = 1 },
-                        Keycode::E    => { vm.keypad[0xE] = 1 },
-                        Keycode::F    => { vm.keypad[0xF] = 1 },
-                        _ => {},
-                    };
-                },
-                Event::KeyUp {keycode: Some(keycode), ..} => {
-                    match keycode {
-                        Keycode::Num0 => { vm.keypad[0x0] = 0 },
-                        Keycode::Num1 => { vm.keypad[0x1] = 0 },
-                        Keycode::Num2 => { vm.keypad[0x2] = 0 },
-                        Keycode::Num3 => { vm.keypad[0x3] = 0 },
-                        Keycode::Num4 => { vm.keypad[0x4] = 0 },
-                        Keycode::Num5 => { vm.keypad[0x5] = 0 },
-                        Keycode::Num6 => { vm.keypad[0x6] = 0 },
-                        Keycode::Num7 => { vm.keypad[0x7] = 0 },
-                        Keycode::Num8 => { vm.keypad[0x8] = 0 },
-                        Keycode::Num9 => { vm.keypad[0x9] = 0 },
-                        Keycode::A    => { vm.keypad[0xA] = 0 },
-                        Keycode::B    => { vm.keypad[0xB] = 0 },
-                        Keycode::C    => { vm.keypad[0xC] = 0 },
-                        Keycode::D    => { vm.keypad[0xD] = 0 },
-                        Keycode::E    => { vm.keypad[0xE] = 0 },
-                        Keycode::F    => { vm.keypad[0xF] = 0 },
+                        Keycode::Num0 => { vm.keypad[0x0] += 1 },
+                        Keycode::Num1 => { vm.keypad[0x1] += 1 },
+                        Keycode::Num2 => { vm.keypad[0x2] += 1 },
+                        Keycode::Num3 => { vm.keypad[0x3] += 1 },
+                        Keycode::Num4 => { vm.keypad[0x4] += 1 },
+                        Keycode::Num5 => { vm.keypad[0x5] += 1 },
+                        Keycode::Num6 => { vm.keypad[0x6] += 1 },
+                        Keycode::Num7 => { vm.keypad[0x7] += 1 },
+                        Keycode::Num8 => { vm.keypad[0x8] += 1 },
+                        Keycode::Num9 => { vm.keypad[0x9] += 1 },
+                        Keycode::A    => { vm.keypad[0xA] += 1 },
+                        Keycode::B    => { vm.keypad[0xB] += 1 },
+                        Keycode::C    => { vm.keypad[0xC] += 1 },
+                        Keycode::D    => { vm.keypad[0xD] += 1 },
+                        Keycode::E    => { vm.keypad[0xE] += 1 },
+                        Keycode::F    => { vm.keypad[0xF] += 1 },
                         _ => {},
                     };
                 },
@@ -142,7 +121,7 @@ fn main() {
 
                 let instruction = match Instruction::decode(bytes) {
                     Some(ins) => ins,
-                    None => panic!("Unknown instruction {:?}", bytes),
+                    None => panic!("Unknown instruction {:?}", bytes), // TODO: Ignore unknown instructions.
                 };
                 // println!("Decoded instruction {:?}", instruction);
                 vm.exec(instruction);
@@ -178,11 +157,6 @@ fn main() {
                     println!("BEEP!");
                     vm.st -= 1;
                 }
-
-                // reset keypad
-                // for key in vm.keypad.iter_mut() {
-                //     *key = 0;
-                // }
 
                 let _ = renderer.present();
             },

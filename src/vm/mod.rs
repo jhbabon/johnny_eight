@@ -7,15 +7,16 @@ pub mod bootstrap;
 
 use rand::{thread_rng, Rng};
 use instructions::Instruction;
-use std::io::{Write, BufWriter};
+use keypad::Key;
 use vm::specs::*;
+use log;
 
 // TODO: Don't make pub attributes, use methods/interface
 pub struct VM {
     pub ram: [u8; RAM_SIZE],                 // Memory
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
     stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
-    pub keypad: [u8; KEYPAD_SIZE],           // Keep track of any key pressed in the keypad
+    keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
     pub gfx: [u8; DISPLAY_PIXELS],           // Graphics "card"
 
     i: usize,                                // Store memory addresses
@@ -28,6 +29,11 @@ pub struct VM {
 }
 
 impl VM {
+    pub fn set_key(&mut self, key: Key) {
+        debug!("Key {:?} pressed", key);
+        self.keypad[key.as_usize()] += 1;
+    }
+
     pub fn advance(&mut self) {
         // We move the PC by two because we need to read
         // two bytes in each cycle.

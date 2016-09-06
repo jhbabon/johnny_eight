@@ -1,7 +1,8 @@
 #[cfg(test)]
 
-use vm::bootstrap::*;
 use instructions::Instruction;
+use keypad::Key;
+use vm::bootstrap::*;
 use vm::specs::*;
 
 #[test]
@@ -18,6 +19,26 @@ fn vm_advances_the_pc_x_times() {
     vm.advance_by(2);
 
     assert_eq!(PROGRAM_START + 4, vm.pc);
+}
+
+#[test]
+fn vm_sets_a_key() {
+    let mut vm = Bootstrap::new().finish();
+    let key = Key::A;
+
+    vm.set_key(key);
+
+    assert_eq!(1, vm.keypad[0xA]);
+}
+
+#[test]
+fn vm_sets_a_key_more_than_once() {
+    let mut vm = Bootstrap::new().finish();
+
+    vm.set_key(Key::A);
+    vm.set_key(Key::A);
+
+    assert_eq!(2, vm.keypad[0xA]);
 }
 
 #[test]
@@ -501,7 +522,7 @@ fn vm_executes_skip_on_key_pressed_instruction_when_key_is_pressed() {
     let mut vm = Bootstrap::new().finish();
 
     vm.registers[0xA] = 0xF; // We look for key F
-    vm.keypad[0xF] = 1;      // key F is pressed
+    vm.set_key(Key::F);      // key F is pressed
 
     vm.exec(instruction);
 
@@ -515,7 +536,6 @@ fn vm_executes_skip_on_key_pressed_instruction_when_key_is_not_pressed() {
     let mut vm = Bootstrap::new().finish();
 
     vm.registers[0xA] = 0xF; // We look for key F
-    vm.keypad[0xF] = 0;      // key F is not pressed
 
     vm.exec(instruction);
 
@@ -529,7 +549,7 @@ fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_pressed() {
     let mut vm = Bootstrap::new().finish();
 
     vm.registers[0xA] = 0xF; // We look for key F
-    vm.keypad[0xF] = 1;      // key F is pressed
+    vm.set_key(Key::F);      // key F is pressed
 
     vm.exec(instruction);
 
@@ -543,7 +563,6 @@ fn vm_executes_skip_on_key_not_pressed_instruction_when_key_is_not_pressed() {
     let mut vm = Bootstrap::new().finish();
 
     vm.registers[0xA] = 0xF; // We look for key F
-    vm.keypad[0xF] = 0;      // key F is not pressed
 
     vm.exec(instruction);
 
@@ -610,7 +629,7 @@ fn vm_executes_wait_key_instruction_with_a_key_pressed() {
 
     let mut vm = Bootstrap::new().finish();
 
-    vm.keypad[0xB] = 1;
+    vm.set_key(Key::B);
 
     vm.exec(instruction);
 

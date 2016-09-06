@@ -1,10 +1,13 @@
 extern crate rand;
 extern crate sdl2;
 extern crate chip_8;
+#[macro_use]
+extern crate env_logger;
 
 use chip_8::vm::bootstrap::Bootstrap;
 use chip_8::vm::specs::*;
 use chip_8::instructions::Instruction;
+use chip_8::keypad::Key;
 use std::fs::File;
 
 use sdl2::event::{Event};
@@ -18,6 +21,8 @@ use std::env;
 use std::process::exit;
 
 fn main() {
+    env_logger::init().unwrap();
+
     let rom_path = match env::args().nth(1) {
         Some(path) => path,
         None => {
@@ -88,22 +93,22 @@ fn main() {
                 Event::Quit{..} => break 'event,
                 Event::KeyDown {keycode: Some(keycode), ..} => {
                     match keycode {
-                        Keycode::Num0 => { vm.keypad[0x0] += 1 },
-                        Keycode::Num1 => { vm.keypad[0x1] += 1 },
-                        Keycode::Num2 => { vm.keypad[0x2] += 1 },
-                        Keycode::Num3 => { vm.keypad[0x3] += 1 },
-                        Keycode::Num4 => { vm.keypad[0x4] += 1 },
-                        Keycode::Num5 => { vm.keypad[0x5] += 1 },
-                        Keycode::Num6 => { vm.keypad[0x6] += 1 },
-                        Keycode::Num7 => { vm.keypad[0x7] += 1 },
-                        Keycode::Num8 => { vm.keypad[0x8] += 1 },
-                        Keycode::Num9 => { vm.keypad[0x9] += 1 },
-                        Keycode::A    => { vm.keypad[0xA] += 1 },
-                        Keycode::B    => { vm.keypad[0xB] += 1 },
-                        Keycode::C    => { vm.keypad[0xC] += 1 },
-                        Keycode::D    => { vm.keypad[0xD] += 1 },
-                        Keycode::E    => { vm.keypad[0xE] += 1 },
-                        Keycode::F    => { vm.keypad[0xF] += 1 },
+                        Keycode::Num0 => { vm.set_key(Key::Num0) },
+                        Keycode::Num1 => { vm.set_key(Key::Num1) },
+                        Keycode::Num2 => { vm.set_key(Key::Num2) },
+                        Keycode::Num3 => { vm.set_key(Key::Num3) },
+                        Keycode::Num4 => { vm.set_key(Key::Num4) },
+                        Keycode::Num5 => { vm.set_key(Key::Num5) },
+                        Keycode::Num6 => { vm.set_key(Key::Num6) },
+                        Keycode::Num7 => { vm.set_key(Key::Num7) },
+                        Keycode::Num8 => { vm.set_key(Key::Num8) },
+                        Keycode::Num9 => { vm.set_key(Key::Num9) },
+                        Keycode::A    => { vm.set_key(Key::A) },
+                        Keycode::B    => { vm.set_key(Key::B) },
+                        Keycode::C    => { vm.set_key(Key::C) },
+                        Keycode::D    => { vm.set_key(Key::D) },
+                        Keycode::E    => { vm.set_key(Key::E) },
+                        Keycode::F    => { vm.set_key(Key::F) },
                         _ => {},
                     };
                 },

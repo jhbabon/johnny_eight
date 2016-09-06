@@ -21,3 +21,5 @@ doc = false
 [dependencies]
 rand = "0.3.14"
 sdl2 = "0.22.0"
+log = "0.3.6"
+env_logger = "0.3.4"

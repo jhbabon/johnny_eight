@@ -685,6 +685,7 @@ fn vm_executes_store_instruction() {
         assert_eq!(0xA, vm.ram[index]);
     }
     assert_eq!(PROGRAM_START + 2, vm.pc);
+    assert_eq!(0x0F0F, vm.i);
 }
 
 #[test]
@@ -705,4 +706,5 @@ fn vm_executes_read_instruction() {
         assert_eq!(0xA, vm.registers[i as usize]);
     }
     assert_eq!(PROGRAM_START + 2, vm.pc);
+    assert_eq!(0x0F0F, vm.i);
 }

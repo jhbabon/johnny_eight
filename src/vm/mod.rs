@@ -353,12 +353,12 @@ impl VM {
             },
 
             Instruction::Store(opcode) => {
-                let mut pointer = self.i;
-
                 for v in 0..opcode.x {
+                    let pointer = self.i + v as usize;
                     self.ram[pointer] = self.registers[v as usize];
-                    pointer += 1;
                 }
+
+                self.i += (opcode.x + 1) as usize;
 
                 self.advance();
             }
@@ -368,6 +368,8 @@ impl VM {
                     let pointer = self.i + v as usize;
                     self.registers[v as usize] = self.ram[pointer];
                 }
+
+                self.i += (opcode.x + 1) as usize;
 
                 self.advance();
             }

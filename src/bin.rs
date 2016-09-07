@@ -115,7 +115,11 @@ fn main() {
     'event : loop {
         for event in events.poll_iter() {
             match event {
-                Event::Quit{..} => break 'event,
+                Event::Quit{..}
+                | Event::KeyDown {keycode: Some(Keycode::Escape), .. } => {
+                    break 'event
+                },
+
                 Event::KeyDown {keycode: Some(keycode), ..} => {
                     match keycode {
                         Keycode::Num0 => { vm.set_key(Key::Num0) },
@@ -137,6 +141,7 @@ fn main() {
                         _ => {},
                     };
                 },
+
                 _ => {},
             }
         }

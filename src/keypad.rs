@@ -31,12 +31,12 @@ impl Key {
             Key::Num7 => 0x7,
             Key::Num8 => 0x8,
             Key::Num9 => 0x9,
-            Key::A    => 0xA,
-            Key::B    => 0xB,
-            Key::C    => 0xC,
-            Key::D    => 0xD,
-            Key::E    => 0xE,
-            Key::F    => 0xF,
+            Key::A => 0xA,
+            Key::B => 0xB,
+            Key::C => 0xC,
+            Key::D => 0xD,
+            Key::E => 0xE,
+            Key::F => 0xF,
         }
     }
 }

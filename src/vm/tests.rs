@@ -3,12 +3,12 @@
 use instructions::Instruction;
 use keypad::Key;
 use specs::*;
-use vm::{VM,Tick};
+use vm::{VM, Tick};
 use std::io::Cursor;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
-use std::sync::mpsc::{channel,Sender,Receiver};
+use std::sync::mpsc::{channel, Sender, Receiver};
 
 #[test]
 fn loads_an_empty_vm_by_default() {
@@ -81,19 +81,13 @@ fn the_clock_ticks() {
 
 #[test]
 fn loads_a_rom_from_a_file() {
-    let rom_path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/fixtures/chip_8_logo.rom"
-    );
+    let rom_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/chip_8_logo.rom");
     let mut rom = File::open(rom_path).unwrap();
 
     let mut vm = VM::boot();
     vm.load_rom(&mut rom);
 
-    let txt_path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/fixtures/chip_8_logo.txt"
-    );
+    let txt_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/chip_8_logo.txt");
     let txt = File::open(txt_path).unwrap();
     let file = BufReader::new(&txt);
     let mut index = PROGRAM_START;
@@ -143,10 +137,7 @@ fn sets_a_key_more_than_once() {
 
 #[test]
 fn cycles_on_clock_tick() {
-    let rom_path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/fixtures/chip_8_logo.rom"
-    );
+    let rom_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/chip_8_logo.rom");
     let mut rom = File::open(rom_path).unwrap();
 
     let mut vm = VM::boot();
@@ -172,10 +163,7 @@ fn cycles_on_clock_tick() {
 
 #[test]
 fn does_not_cycle_without_tick() {
-    let rom_path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/fixtures/chip_8_logo.rom"
-    );
+    let rom_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/chip_8_logo.rom");
     let mut rom = File::open(rom_path).unwrap();
 
     let mut vm = VM::boot();
@@ -648,28 +636,6 @@ fn executes_random_mask_instruction() {
     assert!(vm.registers[0xA] != 0x1E);
     assert_eq!(PROGRAM_START + 2, vm.pc);
 }
-
-// #[test]
-// TODO
-// fn executes_draw_instruction() {
-//     let instruction = Instruction::decode(0xD123).unwrap();
-
-//     let mut vm = VM::boot();
-
-//     vm.registers[0x1] = 0x1;
-//     vm.registers[0x2] = 0x2;
-//     vm.i = 0x1;
-//     vm.ram[0x1] = 0xFF;
-//     vm.ram[0x2] = 0xFF;
-//     vm.ram[0x3] = 0xFF;
-
-//     vm.exec(instruction);
-//
-//     // TODO: What is expected?
-//     let mut expected: [u8; (64 * 32)] = [0; (64 * 32)];
-
-//     assert_eq!(expected, vm.gfx);
-// }
 
 #[test]
 fn executes_skip_on_key_pressed_instruction_when_key_is_pressed() {

@@ -57,8 +57,8 @@ impl Display {
                 }
 
                 let _ = renderer.present();
-            },
-            _ => {}, // TODO: Handle disconnections
+            }
+            _ => {} // TODO: Handle disconnections
         }
     }
 }

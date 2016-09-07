@@ -2,11 +2,12 @@
 
 // TODO: Use consistent indexes with hex values.
 
+mod runtime;
+
 use std::io::Read;
-use std::sync::mpsc::{channel,Sender,Receiver,TryRecvError};
+use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use std::time::Duration;
 use std::thread;
-use rand::{thread_rng, Rng};
 
 use instructions::Instruction;
 use keypad::Key;
@@ -17,23 +18,23 @@ use specs;
 struct Tick;
 
 pub struct VM {
-    ram:       [u8; specs::RAM_SIZE],               // Memory
+    ram: [u8; specs::RAM_SIZE], // Memory
     registers: [u8; specs::GENERAL_REGISTERS_SIZE], // V0 - VF registers
-    stack:     [u16; specs::STACK_SIZE],            // Stack for return addresses of subroutines
-    keypad:    [u8; specs::KEYPAD_SIZE],            // Keep track of any key pressed in the keypad
-    gfx:       [u8; specs::DISPLAY_PIXELS],         // Graphics "card"
+    stack: [u16; specs::STACK_SIZE], // Stack for return addresses of subroutines
+    keypad: [u8; specs::KEYPAD_SIZE], // Keep track of any key pressed in the keypad
+    gfx: [u8; specs::DISPLAY_PIXELS], // Graphics "card"
 
-    i: usize,                                       // Store memory addresses
+    i: usize, // Store memory addresses
 
-    dt: u8,                                         // Delay Timer register
-    st: u8,                                         // Sound Timer register
+    dt: u8, // Delay Timer register
+    st: u8, // Sound Timer register
 
-    pc: usize,                                      // Program Counter
-    sp: usize,                                      // Stack Pointer
+    pc: usize, // Program Counter
+    sp: usize, // Stack Pointer
 
-    display_bus: Option<Sender<Vec<Pixel>>>,        // Bus for the display
+    display_bus: Option<Sender<Vec<Pixel>>>, // Bus for the display
 
-    clock: Option<Receiver<Tick>>,                  // Clock notifications
+    clock: Option<Receiver<Tick>>, // Clock notifications
 }
 
 impl VM {
@@ -41,14 +42,14 @@ impl VM {
         info!("Booting VM");
 
         VM {
-            ram:       [0; specs::RAM_SIZE],
+            ram: [0; specs::RAM_SIZE],
             registers: [0; specs::GENERAL_REGISTERS_SIZE],
-            stack:     [0; specs::STACK_SIZE],
-            keypad:    [0; specs::KEYPAD_SIZE],
-            gfx:       [0; specs::DISPLAY_PIXELS],
+            stack: [0; specs::STACK_SIZE],
+            keypad: [0; specs::KEYPAD_SIZE],
+            gfx: [0; specs::DISPLAY_PIXELS],
 
             pc: specs::PROGRAM_START,
-            i:  0,
+            i: 0,
             sp: 0,
             dt: 0,
             st: 0,
@@ -97,12 +98,12 @@ impl VM {
         let (ticker, clock) = channel();
 
         let _ = thread::spawn(move || {
-            'clock : loop {
+            'clock: loop {
                 thread::sleep(Duration::from_millis(specs::CLOCK));
                 if ticker.send(Tick).is_err() {
                     break 'clock;
                 };
-            };
+            }
         });
 
         self.clock = Some(clock);
@@ -120,7 +121,7 @@ impl VM {
                 Some(ins) => {
                     debug!("Decoded instruction {:?}", ins);
                     self.exec(ins);
-                },
+                }
                 None => debug!("Unknown instruction {:?}", bytes),
             };
 
@@ -143,7 +144,7 @@ impl VM {
                 match clk.try_recv() {
                     Err(TryRecvError::Disconnected) => panic!("The clock died!"),
                     Ok(Tick) => true,
-                    _ => false
+                    _ => false,
                 }
             }
         }
@@ -163,7 +164,7 @@ impl VM {
     pub fn advance_by(&mut self, times: u16) {
         for _ in 0..times {
             self.advance();
-        };
+        }
     }
 
     pub fn exec(&mut self, instruction: Instruction) {
@@ -183,334 +184,74 @@ impl VM {
         //     Noop, // Don't do anything!
         //   }
         match instruction {
-            Instruction::Clear => {
-                for pixel in self.gfx.iter_mut() {
-                    *pixel = 0;
-                }
+            Instruction::Clear => runtime::clear(self),
+            Instruction::Return => runtime::ret(self),
+            Instruction::Jump(opcode) => runtime::jump(self, opcode),
+            Instruction::Call(opcode) => runtime::call(self, opcode),
 
-                self.advance();
-            },
-
-            Instruction::Return => {
-                self.pc = self.stack[self.sp] as usize;
-                self.sp -= 1;
-
-                self.advance();
-            },
-
-            Instruction::Jump(opcode) => {
-                self.pc = opcode.address as usize;
-            },
-
-            Instruction::Call(opcode) => {
-                self.sp += 1;
-                self.stack[self.sp] = self.pc as u16;
-                self.pc = opcode.address as usize;
-            },
-
-            Instruction::SkipOnEqualByte(opcode) => {
-                let vx = self.registers[opcode.x as usize];
-                if vx == opcode.data {
-                    self.advance_by(2);
-                } else {
-                    self.advance();
-                };
-            },
+            Instruction::SkipOnEqualByte(opcode) => runtime::skip_on_equal_byte(self, opcode),
 
             Instruction::SkipOnNotEqualByte(opcode) => {
-                let vx = self.registers[opcode.x as usize];
-                if vx != opcode.data {
-                    self.advance_by(2);
-                } else {
-                    self.advance();
-                };
-            },
+                runtime::skip_on_not_equal_byte(self, opcode)
+            }
 
-            Instruction::SkipOnEqual(opcode) => {
-                let vx = self.registers[opcode.x as usize];
-                let vy = self.registers[opcode.y as usize];
-                if vx == vy {
-                    self.advance_by(2);
-                } else {
-                    self.advance();
-                };
-            },
+            Instruction::SkipOnEqual(opcode) => runtime::skip_on_equal(self, opcode),
 
-            Instruction::SkipOnNotEqual(opcode) => {
-                let vx = self.registers[opcode.x as usize];
-                let vy = self.registers[opcode.y as usize];
-                if vx != vy {
-                    self.advance_by(2);
-                } else {
-                    self.advance();
-                };
-            },
+            Instruction::SkipOnNotEqual(opcode) => runtime::skip_on_not_equal(self, opcode),
 
-            Instruction::SetByte(opcode) => {
-                self.registers[opcode.x as usize] = opcode.data;
+            Instruction::SetByte(opcode) => runtime::set_byte(self, opcode),
 
-                self.advance();
-            },
+            Instruction::AddByte(opcode) => runtime::add_byte(self, opcode),
 
-            Instruction::AddByte(opcode) => {
-                let vx = self.registers[opcode.x as usize];
-                self.registers[opcode.x as usize] = vx.wrapping_add(opcode.data);
+            Instruction::Set(opcode) => runtime::set(self, opcode),
 
-                self.advance();
-            },
+            Instruction::Or(opcode) => runtime::or(self, opcode),
 
-            Instruction::Set(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-                self.registers[opcode.x as usize] = vy;
+            Instruction::And(opcode) => runtime::and(self, opcode),
 
-                self.advance();
-            },
+            Instruction::Xor(opcode) => runtime::xor(self, opcode),
 
-            Instruction::Or(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-                let vx = self.registers[opcode.x as usize];
+            Instruction::Add(opcode) => runtime::add(self, opcode),
 
-                self.registers[opcode.x as usize] = vx | vy;
+            Instruction::SubXY(opcode) => runtime::sub_x_y(self, opcode),
 
-                self.advance();
-            },
+            Instruction::SubYX(opcode) => runtime::sub_y_x(self, opcode),
 
-            Instruction::And(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-                let vx = self.registers[opcode.x as usize];
+            Instruction::ShiftRight(opcode) => runtime::shift_right(self, opcode),
 
-                self.registers[opcode.x as usize] = vx & vy;
+            Instruction::ShiftLeft(opcode) => runtime::shift_left(self, opcode),
 
-                self.advance();
-            },
+            Instruction::SetI(opcode) => runtime::set_i(self, opcode),
 
-            Instruction::Xor(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-                let vx = self.registers[opcode.x as usize];
+            Instruction::JumpPlus(opcode) => runtime::jump_plus(self, opcode),
 
-                self.registers[opcode.x as usize] = vx ^ vy;
+            Instruction::RandomMask(opcode) => runtime::random_mask(self, opcode),
 
-                self.advance();
-            },
+            Instruction::Draw(opcode) => runtime::draw(self, opcode),
 
-            Instruction::Add(opcode) => {
-                let vy = self.registers[opcode.y as usize] as u16;
-                let vx = self.registers[opcode.x as usize] as u16;
-                let add = vx + vy;
-
-                if add > 0xFF {
-                    self.registers[0xF] = 1;
-                } else {
-                    self.registers[0xF] = 0;
-                }
-
-                self.registers[opcode.x as usize] = add as u8;
-
-                self.advance();
-            },
-
-            Instruction::SubXY(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-                let vx = self.registers[opcode.x as usize];
-
-                if vx > vy {
-                    self.registers[0xF] = 1;
-                } else {
-                    self.registers[0xF] = 0;
-                }
-
-                self.registers[opcode.x as usize] = vx.wrapping_sub(vy);
-
-                self.advance();
-            },
-
-            Instruction::SubYX(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-                let vx = self.registers[opcode.x as usize];
-
-                if vy > vx {
-                    self.registers[0xF] = 1;
-                } else {
-                    self.registers[0xF] = 0;
-                }
-
-                self.registers[opcode.x as usize] = vy.wrapping_sub(vx);
-
-                self.advance();
-            },
-
-            Instruction::ShiftRight(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-
-                self.registers[0xF] = vy & 0x1;
-                self.registers[opcode.x as usize] = vy >> 1;
-
-                self.advance();
-            },
-
-            Instruction::ShiftLeft(opcode) => {
-                let vy = self.registers[opcode.y as usize];
-
-                self.registers[0xF] = (vy >> 7) & 0x1;
-                self.registers[opcode.x as usize] = vy << 1;
-
-                self.advance();
-            },
-
-            Instruction::SetI(opcode) => {
-                self.i = opcode.address as usize;
-
-                self.advance();
-            },
-
-            Instruction::JumpPlus(opcode) => {
-                let v0 = self.registers[0] as u16;
-
-                self.pc = (v0 + opcode.address) as usize;
-            },
-
-            Instruction::RandomMask(opcode) => {
-                let mut rng = thread_rng();
-                let rnd: u16 = rng.gen_range(0, 256);
-                let rnd: u8 = rnd as u8;
-
-                self.registers[opcode.x as usize] = rnd & opcode.data;
-
-                self.advance();
-            },
-
-            Instruction::Draw(opcode) => {
-                let x = self.registers[opcode.x as usize] as usize;
-                let y = self.registers[opcode.y as usize] as usize;
-                let i = self.i;
-                let n = opcode.nibble as usize;
-
-                let mut pixels: Vec<Pixel> = vec![];
-
-                self.registers[0xF] = 0;
-                for (sy, byte) in self.ram[i..i+n].iter().enumerate() {
-                    let dy = (y + sy) % specs::DISPLAY_HEIGHT;
-                    for sx in 0usize..8 {
-                        let px = (*byte >> (7 - sx)) & 0b00000001;
-                        let dx = (x + sx) % specs::DISPLAY_WIDTH;
-                        let idx = dy * specs::DISPLAY_WIDTH + dx;
-                        self.gfx[idx] ^= px;
-
-                        // Vf is if there was a collision
-                        self.registers[0xF] |= (self.gfx[idx] == 0 && px == 1) as u8;
-
-                        let pixel = Pixel::new(dx as i32, dy as i32, self.gfx[idx]);
-
-                        pixels.push(pixel);
-                    }
-                }
-
-                if let Some(ref bus) = self.display_bus {
-                    bus.send(pixels).unwrap();
-                };
-
-                self.advance();
-            },
-
-            Instruction::SkipOnKeyPressed(opcode) => {
-                let key = self.registers[opcode.x as usize] as usize;
-
-                if self.keypad[key] > 0 {
-                    self.keypad[key] -= 1;
-                    self.advance_by(2);
-                } else {
-                    self.advance();
-                };
-            },
+            Instruction::SkipOnKeyPressed(opcode) => runtime::skip_on_key_pressed(self, opcode),
 
             Instruction::SkipOnKeyNotPressed(opcode) => {
-                let key = self.registers[opcode.x as usize] as usize;
-
-                if self.keypad[key] == 0 {
-                    self.advance_by(2);
-                } else {
-                    self.keypad[key] -= 1;
-                    self.advance();
-                };
-            },
-
-            Instruction::StoreDelayTimer(opcode) => {
-                self.registers[opcode.x as usize] = self.dt;
-
-                self.advance();
-            },
-
-            Instruction::SetDelayTimer(opcode) => {
-                self.dt = self.registers[opcode.x as usize];
-
-                self.advance();
-            },
-
-            Instruction::SetSoundTimer(opcode) => {
-                self.st = self.registers[opcode.x as usize];
-
-                self.advance();
-            },
-
-            Instruction::WaitKey(opcode) => {
-                let key = self.keypad.iter().position(|&s| s > 0);
-                if let Some(value) = key {
-                    self.registers[opcode.x as usize] = value as u8;
-                    self.keypad[value] -= 1;
-                    self.advance();
-                }
-            },
-
-            Instruction::AddI(opcode) => {
-                let vx = self.registers[opcode.x as usize] as u16;
-                self.i += vx as usize;
-
-                self.advance();
-            },
-
-            Instruction::SetSprite(opcode) => {
-                let vx = self.registers[opcode.x as usize] as usize;
-                self.i = specs::SPRITES_ADDR + vx * specs::SPRITE_HEIGHT;
-
-                self.advance();
-            },
-
-            Instruction::Bcd(opcode) => {
-                // TODO: Clean up
-                let vx = self.registers[opcode.x as usize];
-
-                let b = vx / 100;
-                let c = (vx - (b * 100)) / 10;
-                let d = vx - (b * 100) - (c * 10);
-
-                self.ram[self.i]       = b as u8;
-                self.ram[(self.i + 1)] = c as u8;
-                self.ram[(self.i + 2)] = d as u8;
-
-                self.advance();
-            },
-
-            Instruction::Store(opcode) => {
-                for v in 0..opcode.x {
-                    let pointer = self.i + v as usize;
-                    self.ram[pointer] = self.registers[v as usize];
-                }
-
-                self.i += (opcode.x + 1) as usize;
-
-                self.advance();
+                runtime::skip_on_key_not_pressed(self, opcode)
             }
 
-            Instruction::Read(opcode) => {
-                for v in 0..opcode.x {
-                    let pointer = self.i + v as usize;
-                    self.registers[v as usize] = self.ram[pointer];
-                }
+            Instruction::StoreDelayTimer(opcode) => runtime::store_delay_timer(self, opcode),
 
-                self.i += (opcode.x + 1) as usize;
+            Instruction::SetDelayTimer(opcode) => runtime::set_delay_timer(self, opcode),
 
-                self.advance();
-            }
+            Instruction::SetSoundTimer(opcode) => runtime::set_sound_timer(self, opcode),
+
+            Instruction::WaitKey(opcode) => runtime::wait_key(self, opcode),
+
+            Instruction::AddI(opcode) => runtime::add_i(self, opcode),
+
+            Instruction::SetSprite(opcode) => runtime::set_sprite(self, opcode),
+
+            Instruction::Bcd(opcode) => runtime::bcd(self, opcode),
+
+            Instruction::Store(opcode) => runtime::store(self, opcode),
+
+            Instruction::Read(opcode) => runtime::read(self, opcode),
         }
     }
 }

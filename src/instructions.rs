@@ -1,9 +1,9 @@
 const ADDRESS_MASK: u16 = 0x0FFF;
-const VX_MASK: u16      = 0x0F00;
-const VY_MASK: u16      = 0x00F0;
-const DATA_MASK: u16    = 0x00FF;
-const NIBBLE_MASK: u16  = 0x000F;
-const ID_MASK: u16      = 0xF000;
+const VX_MASK: u16 = 0x0F00;
+const VY_MASK: u16 = 0x00F0;
+const DATA_MASK: u16 = 0x00FF;
+const NIBBLE_MASK: u16 = 0x000F;
+const ID_MASK: u16 = 0xF000;
 
 #[derive(Debug,Copy,Clone,PartialEq)]
 pub struct Opcode {
@@ -19,13 +19,13 @@ pub struct Opcode {
 impl Opcode {
     pub fn new(bytes: u16) -> Opcode {
         Opcode {
-            bytes:   bytes,
+            bytes: bytes,
             address: ADDRESS_MASK & bytes,
-            x:       ((VX_MASK & bytes) >> 8) as u8,
-            y:       ((VY_MASK & bytes) >> 4) as u8,
-            data:    (DATA_MASK & bytes) as u8,
-            nibble:  (NIBBLE_MASK & bytes) as u8,
-            id:      ((ID_MASK & bytes) >> 12) as u8,
+            x: ((VX_MASK & bytes) >> 8) as u8,
+            y: ((VY_MASK & bytes) >> 4) as u8,
+            data: (DATA_MASK & bytes) as u8,
+            nibble: (NIBBLE_MASK & bytes) as u8,
+            id: ((ID_MASK & bytes) >> 12) as u8,
         }
     }
 }
@@ -153,10 +153,16 @@ impl Instruction {
             Opcode { id: 0xC, .. } => Some(Instruction::RandomMask(opcode)),
             Opcode { id: 0xD, .. } => Some(Instruction::Draw(opcode)),
 
-            Opcode { id: 0xE, y: 0x9, nibble: 0xE, .. } => Some(Instruction::SkipOnKeyPressed(opcode)),
-            Opcode { id: 0xE, y: 0xA, nibble: 0x1, .. } => Some(Instruction::SkipOnKeyNotPressed(opcode)),
+            Opcode { id: 0xE, y: 0x9, nibble: 0xE, .. } => {
+                Some(Instruction::SkipOnKeyPressed(opcode))
+            }
+            Opcode { id: 0xE, y: 0xA, nibble: 0x1, .. } => {
+                Some(Instruction::SkipOnKeyNotPressed(opcode))
+            }
 
-            Opcode { id: 0xF, y: 0x0, nibble: 0x7, .. } => Some(Instruction::StoreDelayTimer(opcode)),
+            Opcode { id: 0xF, y: 0x0, nibble: 0x7, .. } => {
+                Some(Instruction::StoreDelayTimer(opcode))
+            }
             Opcode { id: 0xF, y: 0x0, nibble: 0xA, .. } => Some(Instruction::WaitKey(opcode)),
             Opcode { id: 0xF, y: 0x1, nibble: 0x5, .. } => Some(Instruction::SetDelayTimer(opcode)),
             Opcode { id: 0xF, y: 0x1, nibble: 0x8, .. } => Some(Instruction::SetSoundTimer(opcode)),
@@ -210,7 +216,7 @@ mod tests {
         let bytes: u16 = 0x1A1E;
         let instruction = Instruction::decode(bytes).unwrap();
 
-        let opcode  = Opcode::new(bytes);
+        let opcode = Opcode::new(bytes);
         let expected = Instruction::Jump(opcode);
 
         assert_eq!(expected, instruction);

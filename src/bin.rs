@@ -7,7 +7,7 @@ extern crate env_logger;
 
 use chip_8::display::Display;
 use chip_8::vm::bootstrap::Bootstrap; // TODO: deprecate bootstrap in favor of VM::build()
-use chip_8::vm::specs::*;
+use chip_8::specs;
 use chip_8::instructions::Instruction;
 use chip_8::keypad::Key;
 use std::fs::File;
@@ -45,8 +45,8 @@ fn main() {
 
     // Create a window
     // Use a factor or scale constant. Now is scaled using a factor of 20.
-    let width = (DISPLAY_WIDTH * DISPLAY_SCALE) as u32;
-    let height = (DISPLAY_HEIGHT * DISPLAY_SCALE) as u32;
+    let width = (specs::DISPLAY_WIDTH * specs::DISPLAY_SCALE) as u32;
+    let height = (specs::DISPLAY_HEIGHT * specs::DISPLAY_SCALE) as u32;
     let window = video_ctx
         .window("Chip-8", width, height)
         .position_centered()
@@ -71,7 +71,7 @@ fn main() {
     // White
     let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
 
-    let scale = DISPLAY_SCALE as f32;
+    let scale = specs::DISPLAY_SCALE as f32;
     let _ = renderer.set_scale(scale, scale);
 
     // Swap our buffer for the present buffer, displaying it.
@@ -98,7 +98,7 @@ fn main() {
     // Spawn clock timer
     let clock = thread::spawn(move || {
         'clock : loop {
-            thread::sleep(Duration::from_millis(CLOCK));
+            thread::sleep(Duration::from_millis(specs::CLOCK));
             if tx.send("tick").is_err() {
                 break 'clock;
             };

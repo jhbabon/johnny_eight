@@ -1,5 +1,5 @@
-use vm::*;
-use vm::specs::*;
+use vm::VM;
+use specs::*;
 use std::io::Read;
 
 pub struct Bootstrap {
@@ -67,7 +67,7 @@ impl Bootstrap {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vm::specs::*;
+    use specs::*;
     use std::io::Cursor;
     use std::fs::File;
     use std::io::BufReader;

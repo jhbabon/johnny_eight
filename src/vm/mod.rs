@@ -2,7 +2,6 @@
 
 // TODO: Use consistent indexes with hex values.
 
-pub mod specs;
 pub mod bootstrap;
 
 use std::sync::mpsc::Sender;
@@ -10,15 +9,15 @@ use rand::{thread_rng, Rng};
 use instructions::Instruction;
 use keypad::Key;
 use display::Pixel;
-use vm::specs::*;
+use specs;
 
 // TODO: Don't make pub attributes, use methods/interface
 pub struct VM {
-    pub ram: [u8; RAM_SIZE],                 // Memory
-    registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
-    stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
-    keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
-    gfx: [u8; DISPLAY_PIXELS],               // Graphics "card"
+    pub ram: [u8; specs::RAM_SIZE],                 // Memory
+    registers: [u8; specs::GENERAL_REGISTERS_SIZE], // V0 - VF registers
+    stack: [u16; specs::STACK_SIZE],                // Stack for return addresses of subroutines
+    keypad: [u8; specs::KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
+    gfx: [u8; specs::DISPLAY_PIXELS],               // Graphics "card"
 
     i: usize,                                // Store memory addresses
 
@@ -278,11 +277,11 @@ impl VM {
 
                 self.registers[0xF] = 0;
                 for (sy, byte) in self.ram[i..i+n].iter().enumerate() {
-                    let dy = (y + sy) % DISPLAY_HEIGHT;
+                    let dy = (y + sy) % specs::DISPLAY_HEIGHT;
                     for sx in 0usize..8 {
                         let px = (*byte >> (7 - sx)) & 0b00000001;
-                        let dx = (x + sx) % DISPLAY_WIDTH;
-                        let idx = dy * DISPLAY_WIDTH + dx;
+                        let dx = (x + sx) % specs::DISPLAY_WIDTH;
+                        let idx = dy * specs::DISPLAY_WIDTH + dx;
                         self.gfx[idx] ^= px;
 
                         // Vf is if there was a collision
@@ -359,7 +358,7 @@ impl VM {
 
             Instruction::SetSprite(opcode) => {
                 let vx = self.registers[opcode.x as usize] as usize;
-                self.i = SPRITES_ADDR + vx * SPRITE_HEIGHT;
+                self.i = specs::SPRITES_ADDR + vx * specs::SPRITE_HEIGHT;
 
                 self.advance();
             },

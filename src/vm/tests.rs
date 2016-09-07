@@ -3,7 +3,7 @@
 use instructions::Instruction;
 use keypad::Key;
 use vm::bootstrap::*;
-use vm::specs::*;
+use specs::*;
 
 #[test]
 fn vm_advances_the_pc() {

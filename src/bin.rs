@@ -71,22 +71,22 @@ fn main() {
 
                 Event::KeyDown { keycode: Some(keycode), .. } => {
                     match keycode {
-                        Keycode::Num0 => vm.set_key(Key::Num0),
                         Keycode::Num1 => vm.set_key(Key::Num1),
                         Keycode::Num2 => vm.set_key(Key::Num2),
                         Keycode::Num3 => vm.set_key(Key::Num3),
-                        Keycode::Num4 => vm.set_key(Key::Num4),
-                        Keycode::Num5 => vm.set_key(Key::Num5),
-                        Keycode::Num6 => vm.set_key(Key::Num6),
-                        Keycode::Num7 => vm.set_key(Key::Num7),
-                        Keycode::Num8 => vm.set_key(Key::Num8),
-                        Keycode::Num9 => vm.set_key(Key::Num9),
-                        Keycode::A => vm.set_key(Key::A),
-                        Keycode::B => vm.set_key(Key::B),
-                        Keycode::C => vm.set_key(Key::C),
-                        Keycode::D => vm.set_key(Key::D),
-                        Keycode::E => vm.set_key(Key::E),
-                        Keycode::F => vm.set_key(Key::F),
+                        Keycode::Num4 => vm.set_key(Key::C),
+                        Keycode::Q => vm.set_key(Key::Num4),
+                        Keycode::W => vm.set_key(Key::Num5),
+                        Keycode::E => vm.set_key(Key::Num6),
+                        Keycode::R => vm.set_key(Key::D),
+                        Keycode::A => vm.set_key(Key::Num7),
+                        Keycode::S => vm.set_key(Key::Num8),
+                        Keycode::D => vm.set_key(Key::Num9),
+                        Keycode::F => vm.set_key(Key::E),
+                        Keycode::Z => vm.set_key(Key::A),
+                        Keycode::X => vm.set_key(Key::Num0),
+                        Keycode::C => vm.set_key(Key::B),
+                        Keycode::V => vm.set_key(Key::F),
                         _ => {}
                     };
                 }

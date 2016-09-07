@@ -5,8 +5,8 @@ extern crate chip_8;
 extern crate log;
 extern crate env_logger;
 
-use chip_8::boot;
-use chip_8::vm::bootstrap::Bootstrap; // TODO: deprecate bootstrap in favor of boot
+use chip_8::display::Display;
+use chip_8::vm::bootstrap::Bootstrap; // TODO: deprecate bootstrap in favor of VM::build()
 use chip_8::vm::specs::*;
 use chip_8::instructions::Instruction;
 use chip_8::keypad::Key;
@@ -79,19 +79,18 @@ fn main() {
 
     let mut events = ctx.event_pump().unwrap();
 
-    // Graphics bus
-    let (tbus, gfx) = boot::gfx();
+    // Build display with its data bus
+    let (bus, display) = Display::build();
 
-    // TODO: Move this to the Bootstrap system
+    // TODO: Move this to the boot system
     //
     // Example:
     //
-    //     let mut vm = boot::vm()
+    //     let mut vm = VM::boot()
     //         .load_sprites()
     //         .load_rom()
-    //         .load_gfx_bus(tbus)
-    //         .finish();
-    vm.set_bus(tbus);
+    //         .load_display_bus(tbus);
+    vm.set_bus(bus);
 
     // CLOCK!
     // Create channels for sending and receiving
@@ -168,7 +167,7 @@ fn main() {
                 }
 
                 // Send all pixel information to the renderer.
-                gfx.flush(&mut renderer);
+                display.flush(&mut renderer);
             },
             _ => {}
         };

@@ -6,11 +6,10 @@ extern crate log;
 extern crate env_logger;
 
 
-pub mod boot;
 pub mod vm;
 pub mod instructions;
 pub mod keypad;
-pub mod gfx;
+pub mod display;
 
 /// Returns the version of this crate in the format `MAJOR.MINOR.PATCH`.
 pub fn version() -> &'static str {

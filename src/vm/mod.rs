@@ -9,7 +9,7 @@ use std::sync::mpsc::Sender;
 use rand::{thread_rng, Rng};
 use instructions::Instruction;
 use keypad::Key;
-use gfx::Pixel;
+use display::Pixel;
 use vm::specs::*;
 
 // TODO: Don't make pub attributes, use methods/interface

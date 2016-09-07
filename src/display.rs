@@ -1,7 +1,7 @@
 use sdl2::render::Renderer;
 use sdl2::rect::Point;
 use sdl2::pixels::Color;
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::{channel, Sender, Receiver};
 
 #[derive(Debug)]
 pub struct Pixel {
@@ -19,11 +19,11 @@ impl Pixel {
         }
     }
 
-    pub fn point(&self) -> Point {
+    pub fn as_point(&self) -> Point {
         Point::new(self.x, self.y)
     }
 
-    pub fn color(&self) -> Color {
+    pub fn as_color(&self) -> Color {
         if self.value == 1 {
             Color::RGB(255, 255, 255)
         } else {
@@ -33,19 +33,27 @@ impl Pixel {
 }
 
 #[derive(Debug)]
-pub struct Gfx {
-    pub port: Receiver<Vec<Pixel>>,
+pub struct Display {
+    port: Receiver<Vec<Pixel>>,
 }
 
-impl Gfx {
+impl Display {
+    pub fn build() -> (Sender<Vec<Pixel>>, Display) {
+        let (transmitter, port): (Sender<Vec<Pixel>>, Receiver<Vec<Pixel>>) = channel();
+
+        let display = Display { port: port };
+
+        (transmitter, display)
+    }
+
     pub fn flush(&self, renderer: &mut Renderer) {
         match self.port.try_recv() {
             Ok(pixels) => {
                 for pixel in pixels.iter() {
                     debug!("Rendering pixel {:?}", pixel);
 
-                    let _ = renderer.set_draw_color(pixel.color());
-                    let _ = renderer.draw_point(pixel.point());
+                    let _ = renderer.set_draw_color(pixel.as_color());
+                    let _ = renderer.draw_point(pixel.as_point());
                 }
 
                 let _ = renderer.present();

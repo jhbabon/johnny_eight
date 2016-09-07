@@ -2,8 +2,7 @@
 
 // TODO: Use consistent indexes with hex values.
 
-pub mod bootstrap;
-
+use std::io::Read;
 use std::sync::mpsc::Sender;
 use rand::{thread_rng, Rng};
 use instructions::Instruction;
@@ -19,27 +18,76 @@ pub struct VM {
     keypad: [u8; specs::KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
     gfx: [u8; specs::DISPLAY_PIXELS],               // Graphics "card"
 
-    i: usize,                                // Store memory addresses
+    i: usize,                                       // Store memory addresses
 
-    pub dt: u8,                              // Delay Timer register
-    pub st: u8,                              // Sound Timer register
+    pub dt: u8,                                     // Delay Timer register
+    pub st: u8,                                     // Sound Timer register
 
-    pub pc: usize,                           // Program Counter
-    sp: usize,                               // Stack Pointer
+    pub pc: usize,                                  // Program Counter
+    sp: usize,                                      // Stack Pointer
 
-
-    // Bus of data.
-    bus: Option<Sender<Vec<Pixel>>>,
+    display_bus: Option<Sender<Vec<Pixel>>>,        // Bus for the display
 }
 
 impl VM {
+    pub fn boot() -> VM {
+        info!("Booting VM");
+
+        VM {
+            ram:       [0; specs::RAM_SIZE],
+            registers: [0; specs::GENERAL_REGISTERS_SIZE],
+            stack:     [0; specs::STACK_SIZE],
+            keypad:    [0; specs::KEYPAD_SIZE],
+            gfx:       [0; specs::DISPLAY_PIXELS],
+
+            pc: specs::PROGRAM_START,
+            i:  0,
+            sp: 0,
+            dt: 0,
+            st: 0,
+
+            display_bus: None,
+        }
+    }
+
+    pub fn load_sprites<'a>(&'a mut self) -> &'a mut VM {
+        info!("Loading SPRITES into memory");
+
+        let range = specs::SPRITES_ADDR..(specs::SPRITES_ADDR + specs::SPRITES_SIZE);
+        for addr in range {
+            let index = (addr - specs::SPRITES_ADDR) as usize;
+            self.ram[addr] = specs::SPRITES[index];
+        }
+
+        self
+    }
+
+    pub fn load_rom<'a>(&'a mut self, reader: &mut Read) -> &'a mut VM {
+        info!("Loading ROM into memory");
+
+        let mut rom = Vec::new();
+        if let Err(_) = reader.read_to_end(&mut rom) {
+            panic!("Error reading ROM");
+        }
+
+        let mut addr = specs::PROGRAM_START;
+        for byte in &rom {
+            self.ram[addr] = *byte;
+            addr += 1;
+        }
+
+        self
+    }
+
+    pub fn set_display_bus<'a>(&'a mut self, bus: Sender<Vec<Pixel>>) -> &'a mut VM {
+        self.display_bus = Some(bus);
+
+        self
+    }
+
     pub fn set_key(&mut self, key: Key) {
         debug!("Key {:?} pressed", key);
         self.keypad[key.as_usize()] += 1;
-    }
-
-    pub fn set_bus(&mut self, bus: Sender<Vec<Pixel>>) {
-        self.bus = Some(bus);
     }
 
     pub fn advance(&mut self) {
@@ -293,8 +341,8 @@ impl VM {
                     }
                 }
 
-                if let Some(ref b) = self.bus {
-                    b.send(pixels).unwrap();
+                if let Some(ref bus) = self.display_bus {
+                    bus.send(pixels).unwrap();
                 };
 
                 self.advance();

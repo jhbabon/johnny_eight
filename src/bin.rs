@@ -6,7 +6,7 @@ extern crate log;
 extern crate env_logger;
 
 use chip_8::display::Display;
-use chip_8::vm::bootstrap::Bootstrap; // TODO: deprecate bootstrap in favor of VM::build()
+use chip_8::vm::VM;
 use chip_8::specs;
 use chip_8::instructions::Instruction;
 use chip_8::keypad::Key;
@@ -32,12 +32,6 @@ fn main() {
         }
     };
     let mut rom = File::open(rom_path).unwrap();
-
-    // TODO: Move this to a cli module?
-    let mut vm = Bootstrap::new()
-        .load_sprites()
-        .load_rom(&mut rom)
-        .finish();
 
     // start sdl2 with everything
     let ctx = sdl2::init().unwrap();
@@ -82,15 +76,9 @@ fn main() {
     // Build display with its data bus
     let (bus, display) = Display::build();
 
-    // TODO: Move this to the boot system
-    //
-    // Example:
-    //
-    //     let mut vm = VM::boot()
-    //         .load_sprites()
-    //         .load_rom()
-    //         .load_display_bus(tbus);
-    vm.set_bus(bus);
+    // Build the VM
+    let mut vm = VM::boot();
+    vm.load_sprites().load_rom(&mut rom).set_display_bus(bus);
 
     // CLOCK!
     // Create channels for sending and receiving

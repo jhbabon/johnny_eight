@@ -3,11 +3,12 @@
 use instructions::Instruction;
 use keypad::Key;
 use specs::*;
-use vm::VM;
+use vm::{VM,Tick};
 use std::io::Cursor;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
+use std::sync::mpsc::{channel,Sender,Receiver};
 
 #[test]
 fn loads_an_empty_vm_by_default() {
@@ -59,6 +60,23 @@ fn loads_a_rom() {
     let range = PROGRAM_START..(RAM_SIZE - 10);
 
     assert!(vm.ram[range].iter().all(|&x| x == 0xA));
+}
+
+#[test]
+fn inits_the_clock() {
+    let mut vm = VM::boot();
+    vm.init_clock();
+
+    assert!(vm.clock.is_some());
+}
+
+#[test]
+fn the_clock_ticks() {
+    let mut vm = VM::boot();
+    vm.init_clock();
+
+    let clock = vm.clock.unwrap();
+    assert_eq!(Tick, clock.recv().unwrap());
 }
 
 #[test]
@@ -121,6 +139,62 @@ fn sets_a_key_more_than_once() {
     vm.set_key(Key::A);
 
     assert_eq!(2, vm.keypad[0xA]);
+}
+
+#[test]
+fn cycles_on_clock_tick() {
+    let rom_path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/fixtures/chip_8_logo.rom"
+    );
+    let mut rom = File::open(rom_path).unwrap();
+
+    let mut vm = VM::boot();
+    vm.load_rom(&mut rom);
+
+    // We need to force the clock tick
+    let (ticker, clock): (Sender<Tick>, Receiver<Tick>) = channel();
+    vm.clock = Some(clock);
+    ticker.send(Tick).unwrap();
+
+    vm.gfx = [1; DISPLAY_PIXELS];
+    vm.dt = 1;
+    vm.st = 1;
+
+    vm.cycle();
+
+    assert_eq!(PROGRAM_START + 2, vm.pc);
+    assert_eq!(0, vm.dt);
+    assert_eq!(0, vm.st);
+    // The first instruction of the ROM is Clear
+    assert!(vm.gfx.iter().all(|&x| x == 0));
+}
+
+#[test]
+fn does_not_cycle_without_tick() {
+    let rom_path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/fixtures/chip_8_logo.rom"
+    );
+    let mut rom = File::open(rom_path).unwrap();
+
+    let mut vm = VM::boot();
+    vm.load_rom(&mut rom);
+
+    let (_ticker, clock): (Sender<Tick>, Receiver<Tick>) = channel();
+    vm.clock = Some(clock);
+    // We don't send anything to the channel
+
+    vm.gfx = [1; DISPLAY_PIXELS];
+    vm.dt = 1;
+    vm.st = 1;
+
+    vm.cycle();
+
+    assert_eq!(PROGRAM_START, vm.pc);
+    assert_eq!(1, vm.dt);
+    assert_eq!(1, vm.st);
+    assert!(vm.gfx.iter().all(|&x| x == 1));
 }
 
 #[test]

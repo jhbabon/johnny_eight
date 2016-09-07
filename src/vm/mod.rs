@@ -3,30 +3,37 @@
 // TODO: Use consistent indexes with hex values.
 
 use std::io::Read;
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{channel,Sender,Receiver,TryRecvError};
+use std::time::Duration;
+use std::thread;
 use rand::{thread_rng, Rng};
+
 use instructions::Instruction;
 use keypad::Key;
 use display::Pixel;
 use specs;
 
-// TODO: Don't make pub attributes, use methods/interface
+#[derive(Debug,Copy,Clone,PartialEq)]
+struct Tick;
+
 pub struct VM {
-    pub ram: [u8; specs::RAM_SIZE],                 // Memory
+    ram:       [u8; specs::RAM_SIZE],               // Memory
     registers: [u8; specs::GENERAL_REGISTERS_SIZE], // V0 - VF registers
-    stack: [u16; specs::STACK_SIZE],                // Stack for return addresses of subroutines
-    keypad: [u8; specs::KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
-    gfx: [u8; specs::DISPLAY_PIXELS],               // Graphics "card"
+    stack:     [u16; specs::STACK_SIZE],            // Stack for return addresses of subroutines
+    keypad:    [u8; specs::KEYPAD_SIZE],            // Keep track of any key pressed in the keypad
+    gfx:       [u8; specs::DISPLAY_PIXELS],         // Graphics "card"
 
     i: usize,                                       // Store memory addresses
 
-    pub dt: u8,                                     // Delay Timer register
-    pub st: u8,                                     // Sound Timer register
+    dt: u8,                                         // Delay Timer register
+    st: u8,                                         // Sound Timer register
 
-    pub pc: usize,                                  // Program Counter
+    pc: usize,                                      // Program Counter
     sp: usize,                                      // Stack Pointer
 
     display_bus: Option<Sender<Vec<Pixel>>>,        // Bus for the display
+
+    clock: Option<Receiver<Tick>>,                  // Clock notifications
 }
 
 impl VM {
@@ -47,6 +54,7 @@ impl VM {
             st: 0,
 
             display_bus: None,
+            clock: None,
         }
     }
 
@@ -83,6 +91,62 @@ impl VM {
         self.display_bus = Some(bus);
 
         self
+    }
+
+    pub fn init_clock<'a>(&'a mut self) -> &'a mut VM {
+        let (ticker, clock) = channel();
+
+        let _ = thread::spawn(move || {
+            'clock : loop {
+                thread::sleep(Duration::from_millis(specs::CLOCK));
+                if ticker.send(Tick).is_err() {
+                    break 'clock;
+                };
+            };
+        });
+
+        self.clock = Some(clock);
+
+        self
+    }
+
+    pub fn cycle(&mut self) {
+        if self.tick() {
+            let mut bytes = self.ram[self.pc] as u16;
+            bytes = bytes << 8;
+            bytes = bytes | self.ram[self.pc + 1] as u16;
+
+            match Instruction::decode(bytes) {
+                Some(ins) => {
+                    debug!("Decoded instruction {:?}", ins);
+                    self.exec(ins);
+                },
+                None => debug!("Unknown instruction {:?}", bytes),
+            };
+
+            // Decrement the timers
+            if self.dt > 0 {
+                self.dt -= 1;
+            }
+
+            if self.st > 0 {
+                println!("BEEP!"); // TODO: Sound system.
+                self.st -= 1;
+            }
+        };
+    }
+
+    fn tick(&mut self) -> bool {
+        match self.clock {
+            None => false,
+            Some(ref clk) => {
+                match clk.try_recv() {
+                    Err(TryRecvError::Disconnected) => panic!("The clock died!"),
+                    Ok(Tick) => true,
+                    _ => false
+                }
+            }
+        }
     }
 
     pub fn set_key(&mut self, key: Key) {

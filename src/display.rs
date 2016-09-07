@@ -50,7 +50,7 @@ impl Display {
         match self.port.try_recv() {
             Ok(pixels) => {
                 for pixel in pixels.iter() {
-                    debug!("Rendering pixel {:?}", pixel);
+                    trace!("Rendering pixel {:?}", pixel);
 
                     let _ = renderer.set_draw_color(pixel.as_color());
                     let _ = renderer.draw_point(pixel.as_point());

@@ -8,16 +8,12 @@ extern crate env_logger;
 use chip_8::display::Display;
 use chip_8::vm::VM;
 use chip_8::specs;
-use chip_8::instructions::Instruction;
 use chip_8::keypad::Key;
 use std::fs::File;
 
 use sdl2::event::{Event};
 use sdl2::keyboard::Keycode;
 
-use std::sync::mpsc::{channel, TryRecvError};
-use std::thread;
-use std::time::Duration;
 use std::env;
 use std::process::exit;
 
@@ -33,71 +29,40 @@ fn main() {
     };
     let mut rom = File::open(rom_path).unwrap();
 
-    // start sdl2 with everything
+    // Window initialization
     let ctx = sdl2::init().unwrap();
     let video_ctx = ctx.video().unwrap();
-
-    // Create a window
-    // Use a factor or scale constant. Now is scaled using a factor of 20.
     let width = (specs::DISPLAY_WIDTH * specs::DISPLAY_SCALE) as u32;
     let height = (specs::DISPLAY_HEIGHT * specs::DISPLAY_SCALE) as u32;
     let window = video_ctx
         .window("Chip-8", width, height)
         .position_centered()
         .opengl()
-        .build();
+        .build()
+        .unwrap();
 
-    let window = match window {
-        Ok(window) => window,
-        Err(err)   => panic!("failed to create window: {}", err)
-    };
-
-    // Create a rendering context
-    let mut renderer = match window.renderer().build() {
-        Ok(renderer) => renderer,
-        Err(err) => panic!("failed to create renderer: {}", err)
-    };
+    let mut renderer = window.renderer().build().unwrap();
+    let scale = specs::DISPLAY_SCALE as f32;
+    let _ = renderer.set_scale(scale, scale);
 
     // Black
     let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(0, 0 , 0));
     let _ = renderer.clear();
 
-    // White
-    let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
-
-    let scale = specs::DISPLAY_SCALE as f32;
-    let _ = renderer.set_scale(scale, scale);
-
-    // Swap our buffer for the present buffer, displaying it.
+    // Display the black screen.
     let _ = renderer.present();
 
     let mut events = ctx.event_pump().unwrap();
 
-    // Build display with its data bus
+    // Build a Display with its data bus
     let (bus, display) = Display::build();
 
     // Build the VM
     let mut vm = VM::boot();
-    vm.load_sprites().load_rom(&mut rom).set_display_bus(bus);
-
-    // CLOCK!
-    // Create channels for sending and receiving
-    let (tx, rx) = channel();
-    // Spawn clock timer
-    let clock = thread::spawn(move || {
-        'clock : loop {
-            thread::sleep(Duration::from_millis(specs::CLOCK));
-            if tx.send("tick").is_err() {
-                break 'clock;
-            };
-        };
-
-        // TODO: Is this necessary?
-        drop(tx);
-    });
-
-    // Wait a little bit before stating the VM
-    thread::sleep(Duration::from_millis(50));
+    vm.load_sprites()
+        .load_rom(&mut rom)
+        .set_display_bus(bus)
+        .init_clock();
 
     // loop until we receive a QuitEvent
     'event : loop {
@@ -134,39 +99,7 @@ fn main() {
             }
         }
 
-        match rx.try_recv() {
-            Err(TryRecvError::Disconnected) => panic!("The clock died!"),
-            Ok("tick") => {
-                let mut bytes = 0x0 as u16;
-                bytes = vm.ram[vm.pc] as u16;
-                bytes = bytes << 8;
-                bytes = bytes | vm.ram[vm.pc + 1] as u16;
-
-                let instruction = match Instruction::decode(bytes) {
-                    Some(ins) => ins,
-                    None => panic!("Unknown instruction {:?}", bytes), // TODO: Ignore unknown instructions.
-                };
-                // println!("Decoded instruction {:?}", instruction);
-                vm.exec(instruction);
-
-                // Decrement the timers
-                if vm.dt > 0 {
-                    vm.dt -= 1;
-                }
-
-                if vm.st > 0 {
-                    println!("BEEP!");
-                    vm.st -= 1;
-                }
-
-                // Send all pixel information to the renderer.
-                display.flush(&mut renderer);
-            },
-            _ => {}
-        };
+        vm.cycle();
+        display.flush(&mut renderer);
     }
-
-    // TODO: Is this necessary?
-    drop(clock);
-    drop(rx);
 }

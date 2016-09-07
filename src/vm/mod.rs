@@ -13,6 +13,7 @@ use instructions::Instruction;
 use keypad::Key;
 use display::Pixel;
 use specs;
+use vm::runtime::Next;
 
 #[derive(Debug,Copy,Clone,PartialEq)]
 struct Tick;
@@ -168,22 +169,7 @@ impl VM {
     }
 
     pub fn exec(&mut self, instruction: Instruction) {
-        // TODO: I would move the actual executions
-        // to a runtime module and have something like this
-        //
-        //   Instruction::Jump(opcode) => {
-        //     // self is the VM.
-        //     runtime::clear::exec(&mut self, opcode)
-        //   }
-        //
-        // This can return a Next struct that indicates the next
-        // step:
-        //
-        //   struct Next {
-        //     Advance(steps), // Advance steps
-        //     Noop, // Don't do anything!
-        //   }
-        match instruction {
+        let next = match instruction {
             Instruction::Clear => runtime::clear(self),
             Instruction::Return => runtime::ret(self),
             Instruction::Jump(opcode) => runtime::jump(self, opcode),
@@ -252,7 +238,12 @@ impl VM {
             Instruction::Store(opcode) => runtime::store(self, opcode),
 
             Instruction::Read(opcode) => runtime::read(self, opcode),
-        }
+        };
+
+        match next {
+            Next::Advance(steps) => self.advance_by(steps),
+            Next::Noop => (),
+        };
     }
 }
 

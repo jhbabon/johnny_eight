@@ -2,18 +2,17 @@ extern crate rand;
 extern crate sdl2;
 extern crate johnny_eight;
 #[macro_use]
-extern crate log;
 extern crate env_logger;
 
 use johnny_eight::display::Display;
 use johnny_eight::vm::VM;
 use johnny_eight::specs;
 use johnny_eight::keypad::Key;
-use std::fs::File;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
+use std::fs::File;
 use std::env;
 use std::process::exit;
 
@@ -34,7 +33,7 @@ fn main() {
     let video_ctx = ctx.video().unwrap();
     let width = (specs::DISPLAY_WIDTH * specs::DISPLAY_SCALE) as u32;
     let height = (specs::DISPLAY_HEIGHT * specs::DISPLAY_SCALE) as u32;
-    let window = video_ctx.window("Chip-8", width, height)
+    let window = video_ctx.window("Johnny Eight", width, height)
         .position_centered()
         .opengl()
         .build()
@@ -44,14 +43,12 @@ fn main() {
     let scale = specs::DISPLAY_SCALE as f32;
     let _ = renderer.set_scale(scale, scale);
 
-    // Black
+    // Paint screen black
     let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
     let _ = renderer.clear();
 
     // Display the black screen.
     let _ = renderer.present();
-
-    let mut events = ctx.event_pump().unwrap();
 
     // Build a Display with its data bus
     let (bus, display) = Display::build();
@@ -62,6 +59,8 @@ fn main() {
         .load_rom(&mut rom)
         .set_display_bus(bus)
         .init_clock();
+
+    let mut events = ctx.event_pump().unwrap();
 
     // loop until we receive a QuitEvent
     'event: loop {

@@ -1,20 +1,20 @@
 [package]
-name = "chip_8"
+name = "johnny_eight"
 version = "0.1.0"
 authors = ["Juan Hernández <juan.hernandez.babon@gmail.com>"]
 description = "CHIP-8 emulator"
-homepage = "https://github.com/jhbabon/chip_8"
-repository = "https://github.com/jhbabon/chip_8"
+homepage = "https://github.com/jhbabon/johnny_eight"
+repository = "https://github.com/jhbabon/johnny_eight"
 readme = "README.md"
-keywords = ["chip_8", "chip-8", "emulator"]
+keywords = ["johnny_eight", "chip-8", "chip-8", "emulator"]
 license = "MIT"
 
 [lib]
-name = "chip_8"
+name = "johnny_eight"
 path = "src/lib.rs"
 
 [[bin]]
-name = "chip_8"
+name = "johnny_eight"
 path = "src/bin.rs"
 doc = false
 

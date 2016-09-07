@@ -1,14 +1,14 @@
 extern crate rand;
 extern crate sdl2;
-extern crate chip_8;
+extern crate johnny_eight;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
 
-use chip_8::display::Display;
-use chip_8::vm::VM;
-use chip_8::specs;
-use chip_8::keypad::Key;
+use johnny_eight::display::Display;
+use johnny_eight::vm::VM;
+use johnny_eight::specs;
+use johnny_eight::keypad::Key;
 use std::fs::File;
 
 use sdl2::event::Event;

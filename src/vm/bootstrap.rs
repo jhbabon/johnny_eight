@@ -58,6 +58,8 @@ impl Bootstrap {
             sp: 0,
             dt: 0,
             st: 0,
+
+            bus: None,
         }
     }
 }

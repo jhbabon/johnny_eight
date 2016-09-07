@@ -5,11 +5,12 @@
 pub mod specs;
 pub mod bootstrap;
 
+use std::sync::mpsc::Sender;
 use rand::{thread_rng, Rng};
 use instructions::Instruction;
 use keypad::Key;
+use gfx::Pixel;
 use vm::specs::*;
-use log;
 
 // TODO: Don't make pub attributes, use methods/interface
 pub struct VM {
@@ -17,7 +18,7 @@ pub struct VM {
     registers: [u8; GENERAL_REGISTERS_SIZE], // V0 - VF registers
     stack: [u16; STACK_SIZE],                // Stack for return addresses of subroutines
     keypad: [u8; KEYPAD_SIZE],               // Keep track of any key pressed in the keypad
-    pub gfx: [u8; DISPLAY_PIXELS],           // Graphics "card"
+    gfx: [u8; DISPLAY_PIXELS],               // Graphics "card"
 
     i: usize,                                // Store memory addresses
 
@@ -26,12 +27,20 @@ pub struct VM {
 
     pub pc: usize,                           // Program Counter
     sp: usize,                               // Stack Pointer
+
+
+    // Bus of data.
+    bus: Option<Sender<Vec<Pixel>>>,
 }
 
 impl VM {
     pub fn set_key(&mut self, key: Key) {
         debug!("Key {:?} pressed", key);
         self.keypad[key.as_usize()] += 1;
+    }
+
+    pub fn set_bus(&mut self, bus: Sender<Vec<Pixel>>) {
+        self.bus = Some(bus);
     }
 
     pub fn advance(&mut self) {
@@ -52,7 +61,7 @@ impl VM {
         //
         //   Instruction::Jump(opcode) => {
         //     // self is the VM.
-        //     runtime::clear::exec(self, opcode)
+        //     runtime::clear::exec(&mut self, opcode)
         //   }
         //
         // This can return a Next struct that indicates the next
@@ -265,6 +274,8 @@ impl VM {
                 let i = self.i;
                 let n = opcode.nibble as usize;
 
+                let mut pixels: Vec<Pixel> = vec![];
+
                 self.registers[0xF] = 0;
                 for (sy, byte) in self.ram[i..i+n].iter().enumerate() {
                     let dy = (y + sy) % DISPLAY_HEIGHT;
@@ -276,8 +287,16 @@ impl VM {
 
                         // Vf is if there was a collision
                         self.registers[0xF] |= (self.gfx[idx] == 0 && px == 1) as u8;
+
+                        let pixel = Pixel::new(dx as i32, dy as i32, self.gfx[idx]);
+
+                        pixels.push(pixel);
                     }
                 }
+
+                if let Some(ref b) = self.bus {
+                    b.send(pixels).unwrap();
+                };
 
                 self.advance();
             },

@@ -2,16 +2,17 @@ extern crate rand;
 extern crate sdl2;
 extern crate chip_8;
 #[macro_use]
+extern crate log;
 extern crate env_logger;
 
-use chip_8::vm::bootstrap::Bootstrap;
+use chip_8::boot;
+use chip_8::vm::bootstrap::Bootstrap; // TODO: deprecate bootstrap in favor of boot
 use chip_8::vm::specs::*;
 use chip_8::instructions::Instruction;
 use chip_8::keypad::Key;
 use std::fs::File;
 
 use sdl2::event::{Event};
-use sdl2::rect::{Rect,Point};
 use sdl2::keyboard::Keycode;
 
 use std::sync::mpsc::{channel, TryRecvError};
@@ -44,7 +45,15 @@ fn main() {
 
     // Create a window
     // Use a factor or scale constant. Now is scaled using a factor of 20.
-    let window  = match video_ctx.window("Chip-8", 1280, 640).position_centered().opengl().build() {
+    let width = (DISPLAY_WIDTH * DISPLAY_SCALE) as u32;
+    let height = (DISPLAY_HEIGHT * DISPLAY_SCALE) as u32;
+    let window = video_ctx
+        .window("Chip-8", width, height)
+        .position_centered()
+        .opengl()
+        .build();
+
+    let window = match window {
         Ok(window) => window,
         Err(err)   => panic!("failed to create window: {}", err)
     };
@@ -62,10 +71,27 @@ fn main() {
     // White
     let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
 
+    let scale = DISPLAY_SCALE as f32;
+    let _ = renderer.set_scale(scale, scale);
+
     // Swap our buffer for the present buffer, displaying it.
     let _ = renderer.present();
 
     let mut events = ctx.event_pump().unwrap();
+
+    // Graphics bus
+    let (tbus, gfx) = boot::gfx();
+
+    // TODO: Move this to the Bootstrap system
+    //
+    // Example:
+    //
+    //     let mut vm = boot::vm()
+    //         .load_sprites()
+    //         .load_rom()
+    //         .load_gfx_bus(tbus)
+    //         .finish();
+    vm.set_bus(tbus);
 
     // CLOCK!
     // Create channels for sending and receiving
@@ -131,28 +157,6 @@ fn main() {
                 // println!("Decoded instruction {:?}", instruction);
                 vm.exec(instruction);
 
-                let mut x = 0;
-                let mut y = 0;
-                for pixel in vm.gfx.iter() {
-                    if *pixel == 1 {
-                        let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
-                    } else {
-                        let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(0, 0 , 0));
-                    };
-
-                    let point = Point::new(x, y).scale(20);
-                    let rect = Rect::new(point.x(), point.y(), 20, 20);
-                    let _ = renderer.fill_rect(rect);
-
-                    if x == 63 {
-                        x = 0;
-                        y += 1;
-                    } else {
-                        x += 1;
-                    }
-
-                }
-
                 // Decrement the timers
                 if vm.dt > 0 {
                     vm.dt -= 1;
@@ -163,7 +167,8 @@ fn main() {
                     vm.st -= 1;
                 }
 
-                let _ = renderer.present();
+                // Send all pixel information to the renderer.
+                gfx.flush(&mut renderer);
             },
             _ => {}
         };

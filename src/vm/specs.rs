@@ -32,3 +32,4 @@ pub const CLOCK: u64 = 16; // Milliseconds: 1000 ms / 60
 pub const DISPLAY_WIDTH: usize = 64;
 pub const DISPLAY_HEIGHT: usize = 32;
 pub const DISPLAY_PIXELS: usize = DISPLAY_WIDTH * DISPLAY_HEIGHT;
+pub const DISPLAY_SCALE: usize = 20;

@@ -15,6 +15,19 @@ pub fn clear(vm: &mut VM) -> Next {
         *pixel = 0;
     }
 
+    if let Some(ref bus) = vm.display_bus {
+        let mut pixels: Vec<Pixel> = vec![];
+        for x in 0..specs::DISPLAY_WIDTH {
+            for y in 0..specs::DISPLAY_HEIGHT {
+                let pixel = Pixel::new(x as i32, y as i32, 0);
+
+                pixels.push(pixel);
+            }
+        }
+
+        bus.send(pixels).unwrap();
+    };
+
     Next::Advance(1)
 }
 

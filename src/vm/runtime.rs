@@ -11,20 +11,26 @@ pub enum Next {
 }
 
 pub fn clear(vm: &mut VM) -> Next {
+    let mut pixels: Vec<Pixel> = vec![];
+    let width = specs::DISPLAY_WIDTH as i32;
+    let mut x: i32 = 0;
+    let mut y: i32 = 0;
+
     for pixel in vm.gfx.iter_mut() {
         *pixel = 0;
+
+        pixels.push(Pixel::new(x, y, 0));
+
+        x += 1;
+        // This is the end of the line,
+        // time to start a new one.
+        if x == width {
+            x = 0;
+            y += 1;
+        }
     }
 
     if let Some(ref bus) = vm.display_bus {
-        let mut pixels: Vec<Pixel> = vec![];
-        for x in 0..specs::DISPLAY_WIDTH {
-            for y in 0..specs::DISPLAY_HEIGHT {
-                let pixel = Pixel::new(x as i32, y as i32, 0);
-
-                pixels.push(pixel);
-            }
-        }
-
         bus.send(pixels).unwrap();
     };
 
